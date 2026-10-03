@@ -40,10 +40,19 @@ basecamp-voice-core (Qt module)     records audio, runs whisper, talks to the mo
 - **Plan first, then act.** Before anything that installs or starts, show the
   plan and wait for a click (or a spoken "yes"). Then stream each step to the
   UI as it happens, then a short summary.
-- **Model:** a small instruct model with tool calling, ~3–4B (Qwen-class),
-  served by llama.cpp's `llama-server` (OpenAI-compatible, grammar-constrained
-  tool calls) or Ollama. Do not bundle a multi-GB model in the .lgx; detect a
-  local server, explain how to start one, allow a configured URL.
+- **Model runtime: fetched, not bundled, and the model pulled on
+  confirmation** (decided by the owner, 2026-10-03):
+  - The core downloads llama.cpp's prebuilt `llama-server` on first use from
+    its GitHub releases — `llama-<tag>-bin-ubuntu-x64.tar.gz` (16 MB, CPU) or
+    `…-ubuntu-vulkan-x64.tar.gz` (30 MB, GPU; the Iris Xe here); tag b11379 on
+    2026-10-03 — pinned to a tag and verified by checksum, kept in the
+    module's data directory, and runs it on localhost as a child process.
+  - The model (GGUF from Hugging Face, ~2–3 GB for a 3–4B instruct model at
+    Q4) is downloaded **only after the user confirms**, with its size shown,
+    verified by sha256, resumable.
+  - Later: models served over **Logos Storage** instead of Hugging Face.
+  - A user-configured OpenAI-compatible URL (Ollama, another machine)
+    replaces all of this.
 - **System prompt:** what Basecamp is, modules vs UI plugins, the tool set, and
   worked examples ("install X and start it" → the exact tool sequence).
 
@@ -101,12 +110,15 @@ installs one, and calls a method on it — answers 1–4 and decides the design.
   arecord); stop with SIGINT so the WAV header is finished. Working code:
   `Hub::recordStart/recordStop` in the file above. Use `posix_spawnp`, not
   fork/exec, inside a multithreaded module.
-- **whisper.cpp is installed here**: `~/.local/bin/whisper-cli`, model
-  `~/.local/share/whisper/ggml-large-v3-turbo-q5_0.bin` (multilingual,
-  Czech fine). Measured: 11 s of speech → ~6 s with `-l <lang>` and
-  `-ac <clip-sized window>`; auto language detection doubles it. See
-  `logos-vpn/internal/agent/stt.go` for the exact flags. A smaller model
-  (`base`/`small`) may be enough for short commands — measure.
+- **Speech-to-text: use Parakeet, not Whisper** — measured in
+  `logos-vpn/docs/speech-to-text.md`. whisper.cpp's `parakeet-cli` with
+  `ggml-parakeet-tdt-0.6b-v3-q4_k.bin` (416 MB, `ggml-org/parakeet-GGUF`) ran
+  6–8× real time on this laptop's CPU against 1–1.2× for Whisper turbo, with
+  the same words, and detects the language itself (25 European languages,
+  Czech among them — not yet measured). It is verbatim ("uh", false starts),
+  which a model reading commands does not mind. Built here:
+  `~/.local/src/whisper.cpp/build/bin/parakeet-cli`; models in
+  `~/.local/share/whisper/`. Fetch both the same way as llama-server.
 - **No local LLM server is installed yet** — llama.cpp or Ollama will be
   needed. 20 cores, 62 GB RAM, Intel Iris Xe, no NVIDIA.
 - **Packaging:** `nix build .#lgx-portable` (needs `~/.nix-profile/bin` on
