@@ -1,0 +1,10 @@
+Loading core dependencies for "voice_spike_ui" : QList("voice_spike")
+[2026-10-03 18:56:29.734] [warning] [logos] [voice_spike] Warning: RemoteTransportConnection: no listener at "local:logos_token_list_module_0fa4b5b336de" -- request for "token_list_module" will block up to 120000 ms and 
+[2026-10-03 18:58:30.175] [warning] [logos] [voice_spike] Warning: RemoteTransportConnection: Timeout waiting for replica: "token_list_module"
+Core module file installed: "/tmp/bcv/ud/modules/token_list_module/token_list_module_plugin.so"
+[2026-10-03 18:58:42.000] [warning] [logos] [voice_spike] Warning: RemoteTransportConnection: no listener at "local:logos_token_list_module_0fa4b5b336de" -- request for "token_list_module" will block up to 120000 ms and 
+[2026-10-03 19:00:42.175] [warning] [logos] [voice_spike] Warning: RemoteTransportConnection: Timeout waiting for replica: "token_list_module"
+[2026-10-03 19:01:16.191] [warning] [logos] [voice_spike] Warning: RemoteTransportConnection: no listener at "local:logos_token_list_module_0fa4b5b336de" -- request for "token_list_module" will block up to 120000 ms and 
+[2026-10-03 19:03:16.175] [warning] [logos] [voice_spike] Warning: RemoteTransportConnection: Timeout waiting for replica: "token_list_module"
+[2026-10-03 19:04:26.129] [warning] [logos] [voice_spike] Warning: RemoteTransportConnection: no listener at "local:logos_token_list_module_0fa4b5b336de" -- request for "token_list_module" will block up to 120000 ms and 
+[2026-10-03 19:06:26.175] [warning] [logos] [voice_spike] Warning: RemoteTransportConnection: Timeout waiting for replica: "token_list_module"

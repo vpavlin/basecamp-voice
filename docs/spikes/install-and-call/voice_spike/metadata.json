@@ -1,0 +1,12 @@
+{
+    "name": "voice_spike",
+    "display_name": "Voice Spike",
+    "version": "0.0.1",
+    "description": "Spike: list, install and call Basecamp modules by name",
+    "author": "vpavlin",
+    "type": "core",
+    "interface": "universal",
+    "category": "development",
+    "main": "voice_spike_plugin",
+    "dependencies": []
+}

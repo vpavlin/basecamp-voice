@@ -1,0 +1,10 @@
+App launcher clicked: "voice_spike_ui"
+Loading core dependencies for "voice_spike_ui" : QList("voice_spike")
+[2026-10-03 19:07:59.681] [info] [logos] Module loaded: voice_spike
+Core module file installed: "/tmp/bcv/ud/modules/eth_rpc_module/eth_rpc_module_plugin.so"
+UI plugin file installed: "/tmp/bcv/ud/plugins/eth_rpc_ui/eth_rpc_ui_plugin.so"
+App launcher clicked: "eth_rpc_ui"
+Loading core dependencies for "eth_rpc_ui" : QList("eth_rpc_module")
+[2026-10-03 19:09:27.784] [info] [logos] Module loaded: eth_rpc_module
+[2026-10-03 19:11:30.789] [warning] [logos] [voice_spike] Warning: RemoteTransportConnection: no listener at "local:logos_blockchain_module_3ecd638941f4" -- request for "blockchain_module" will block up to 120000 ms and 
+[2026-10-03 19:13:31.176] [warning] [logos] [voice_spike] Warning: RemoteTransportConnection: Timeout waiting for replica: "blockchain_module"

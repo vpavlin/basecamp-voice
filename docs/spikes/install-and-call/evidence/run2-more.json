@@ -1,0 +1,7 @@
+{"steps":[
+ {"module":"eth_rpc_module","method":"list_chains","args":[]},
+ {"module":"eth_rpc_module","method":"get_chain_config","args":[1]},
+ {"module":"eth_rpc_module","method":"getPluginEvents","args":[]},
+ {"module":"eth_rpc_module","method":"no_such_method","args":[]},
+ {"module":"blockchain_module","method":"getPluginMethods","args":[]}
+]}

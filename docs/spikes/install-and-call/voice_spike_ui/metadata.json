@@ -1,0 +1,19 @@
+{
+    "name": "voice_spike_ui",
+    "display_name": "Voice Spike",
+    "version": "0.0.1",
+    "description": "Spike view: loads voice_spike and raises intents it asks for",
+    "author": "vpavlin",
+    "type": "ui_qml",
+    "category": "development",
+    "view": "Main.qml",
+    "icon": "icon.png",
+    "dependencies": [
+        "voice_spike"
+    ],
+    "uses": [
+        {
+            "intent": "basecamp.apps.launch"
+        }
+    ]
+}

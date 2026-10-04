@@ -1,0 +1,15 @@
+{"steps":[
+ {"sleepMs": 3000},
+ {"module":"modules_state","method":"module_record","args":["token_list_module"]},
+ {"module":"modules_state","method":"module_record","args":["eth_rpc_module"]},
+ {"install":"eth_rpc_ui"},
+ {"sleepMs": 2000},
+ {"module":"modules_state","method":"module_record","args":["eth_rpc_module"]},
+ {"viewAction":{"intent":"basecamp.apps.launch","params":{"app":"eth_rpc_ui"}}},
+ {"module":"modules_state","method":"is_ready","args":["eth_rpc_module"],"retry":30,"delayMs":2000,"until":"truthy"},
+ {"module":"modules_state","method":"module_record","args":["eth_rpc_module"]},
+ {"methods":"eth_rpc_module"},
+ {"module":"eth_rpc_module","method":"getMethods","args":[]},
+ {"module":"eth_rpc_module","method":"getPluginMethods","args":[]},
+ {"waitScript":"/tmp/voice_spike/more.json"}
+]}
