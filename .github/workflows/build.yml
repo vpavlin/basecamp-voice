@@ -1,0 +1,95 @@
+# Build the Basecamp packages for every platform Basecamp ships, merge them into
+# one package per module, and attach them to a release for v* tags.
+#
+#   linux-amd64   ubuntu-latest
+#   linux-arm64   ubuntu-24.04-arm
+#   darwin-arm64  macos-14 (Apple Silicon)
+#
+# Artifacts: lgx-<platform> per build, and basecamp-voice-packages (the merged,
+# multi-platform .lgx files: what users install).
+name: Build
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: ubuntu-latest, platform: linux-amd64 }
+          - { runner: ubuntu-24.04-arm, platform: linux-arm64 }
+          - { runner: macos-14, platform: darwin-arm64 }
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            extra-substituters = https://cache.nix.logos.co/public
+            extra-trusted-public-keys = public:Z1wyVBEx8PHbXujYB52Mysv9Rd8rWIhyQ3bQyef9yy4=
+            accept-flake-config = true
+      # The sub-flakes refer to each other by relative path; point them at this
+      # checkout explicitly so a build never depends on a stale lock.
+      - name: Unit tests
+        run: nix build -L ./core#unit-tests --override-input stt "path:$PWD/nix/stt"
+      - name: Core package
+        run: nix build -L ./core#lgx-portable --override-input stt "path:$PWD/nix/stt" -o core-lgx
+      - name: View package
+        run: nix build -L ./view#lgx-portable --override-input basecamp_voice_core "path:$PWD/core" -o view-lgx
+      - name: Collect
+        run: |
+          mkdir -p out
+          cp core-lgx/*.lgx out/basecamp_voice_core.lgx
+          cp view-lgx/*.lgx out/basecamp_voice.lgx
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lgx-${{ matrix.platform }}
+          path: out/
+
+  merge:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            extra-substituters = https://cache.nix.logos.co/public
+            extra-trusted-public-keys = public:Z1wyVBEx8PHbXujYB52Mysv9Rd8rWIhyQ3bQyef9yy4=
+            accept-flake-config = true
+      - uses: actions/download-artifact@v4
+        with:
+          path: built
+      - name: Merge platforms
+        run: |
+          nix build github:logos-co/logos-package -o lgxtool
+          mkdir -p dist
+          for m in basecamp_voice_core basecamp_voice; do
+            LGX=$PWD/lgxtool/bin/lgx scripts/lgx-merge-platforms.sh -o dist/$m.lgx \
+              built/lgx-linux-amd64/$m.lgx built/lgx-linux-arm64/$m.lgx built/lgx-darwin-arm64/$m.lgx
+          done
+          for f in dist/*.lgx; do
+            echo "== $f"; tar xzOf "$f" manifest.json | python3 -c "import json,sys; m=json.load(sys.stdin); print(m['name'], m['version'], sorted(m.get('main', {}).keys()) or 'view')"
+            tar tzf "$f" | grep -oE '^variants/[^/]+' | sort -u
+          done
+          (cd dist && sha256sum *.lgx > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: basecamp-voice-packages
+          path: dist/
+      - name: Release (v* tags)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "Basecamp Voice $GITHUB_REF_NAME" --notes-file docs/release-notes.md

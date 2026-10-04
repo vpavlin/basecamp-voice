@@ -2322,7 +2322,7 @@
       },
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-icb2/RKvD1Z9wA4ypnMtds5Bdwf7pFvUhsbbAP+WcPM=",
+        "narHash": "sha256-iPsldI2nCq3tFy8t6E7G5P1vwSOcyBW7yqfV5kWq3lQ=",
         "path": "../nix/stt",
         "type": "path"
       },

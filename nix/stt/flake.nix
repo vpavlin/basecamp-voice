@@ -33,6 +33,11 @@
             "-DWHISPER_BUILD_TESTS=OFF"
             "-DWHISPER_BUILD_SERVER=OFF"
             "-DWHISPER_SDL2=OFF"
+            # macOS: plain CPU (NEON). No Metal shaders or Accelerate framework
+            # to ship or link; Parakeet is fast enough on Apple Silicon CPUs.
+            "-DGGML_METAL=OFF"
+            "-DGGML_ACCELERATE=OFF"
+            "-DGGML_BLAS=OFF"
           ];
           buildPhase = ''
             runHook preBuild
@@ -44,13 +49,26 @@
             mkdir -p $out/lib $out/include
             libs=$(find . -name 'libparakeet.a' -o -name 'libggml.a' -o -name 'libggml-base.a' -o -name 'libggml-cpu.a')
             echo "merging: $libs"
-            {
-              echo "CREATE $out/lib/libvoicestt.a"
-              for l in $libs; do echo "ADDLIB $l"; done
-              echo "SAVE"
-              echo "END"
-            } | ${if pkgs.stdenv.isDarwin then "false" else "ar -M"}
-            ranlib $out/lib/libvoicestt.a
+            ${if pkgs.stdenv.hostPlatform.isDarwin then ''
+              # No `ar -M` on macOS: unpack each archive into its own folder,
+              # prefix the object names (two archives may share one), repack.
+              objs=$(mktemp -d)
+              i=0
+              for l in $libs; do
+                i=$((i+1)); mkdir -p "$objs/$i"
+                (cd "$objs/$i" && ar x "$OLDPWD/$l" && for o in *.o; do mv "$o" "l''${i}_$o"; done)
+              done
+              ar rcs $out/lib/libvoicestt.a "$objs"/*/*.o
+              ranlib $out/lib/libvoicestt.a
+            '' else ''
+              {
+                echo "CREATE $out/lib/libvoicestt.a"
+                for l in $libs; do echo "ADDLIB $l"; done
+                echo "SAVE"
+                echo "END"
+              } | ar -M
+              ranlib $out/lib/libvoicestt.a
+            ''}
             cp $src/include/parakeet.h $out/include/
             cp $src/ggml/include/*.h $out/include/
             runHook postInstall

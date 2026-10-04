@@ -14,13 +14,21 @@
 #endif
 #include <thread>
 
+#if defined(__APPLE__)
+// A dynamic library on macOS cannot reference `environ` directly.
+#include <crt_externs.h>
+static char** currentEnviron() { return *_NSGetEnviron(); }
+#else
 extern char** environ;
+static char** currentEnviron() { return environ; }
+#endif
 
 namespace proc {
 namespace {
 
 bool dropped(const char* entry) {
-    for (const char* name : {"LD_LIBRARY_PATH=", "LD_PRELOAD=", "QT_PLUGIN_PATH=", "QML_IMPORT_PATH=", "QML2_IMPORT_PATH="})
+    for (const char* name : {"LD_LIBRARY_PATH=", "LD_PRELOAD=", "QT_PLUGIN_PATH=", "QML_IMPORT_PATH=", "QML2_IMPORT_PATH=",
+                             "DYLD_LIBRARY_PATH=", "DYLD_INSERT_LIBRARIES=", "DYLD_FRAMEWORK_PATH="})
         if (std::strncmp(entry, name, std::strlen(name)) == 0) return true;
     return false;
 }
@@ -31,7 +39,7 @@ pid_t spawn(const std::vector<std::string>& argv, const std::string& logPath,
             const std::vector<std::string>& extraEnv, std::string* error) {
     if (argv.empty()) { *error = "nothing to run"; return -1; }
     std::vector<std::string> env;
-    for (char** e = environ; e && *e; ++e)
+    for (char** e = currentEnviron(); e && *e; ++e)
         if (!dropped(*e)) env.emplace_back(*e);
     for (const auto& x : extraEnv) env.push_back(x);
 
@@ -74,7 +82,7 @@ pid_t spawnTied(const std::vector<std::string>& argv, const std::string& logPath
     if (argv.empty() || argv[0].find('/') == std::string::npos) { *error = "spawnTied needs an absolute program path"; return -1; }
     // Everything the child needs is prepared before fork.
     std::vector<std::string> env;
-    for (char** e = environ; e && *e; ++e)
+    for (char** e = currentEnviron(); e && *e; ++e)
         if (!dropped(*e)) env.emplace_back(*e);
     for (const auto& x : extraEnv) env.push_back(x);
     std::vector<char*> av, ev;
