@@ -627,18 +627,18 @@
   ]
  },
  {
-  "say": "Add this repository: https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json and show me a list of all apps in it",
+  "say": "Add this repository: https://repo.example.org/basecamp-0.3/logos-repo.json and show me a list of all apps in it",
   "want": [
    {
     "tool": "add_repository",
     "args": {
-     "url": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json"
+     "url": "https://repo.example.org/basecamp-0.3/logos-repo.json"
     }
    },
    {
     "tool": "list_available",
     "args": {
-     "repository": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json"
+     "repository": "https://repo.example.org/basecamp-0.3/logos-repo.json"
     }
    }
   ]
@@ -647,9 +647,9 @@
   "say": "install the second one",
   "history": [
    {
-    "said": "Add this repository: https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json and show me the apps in it",
-    "result": "Added the repository https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json. https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has 4 packages.",
-    "lists": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
+    "said": "Add this repository: https://repo.example.org/basecamp-0.3/logos-repo.json and show me the apps in it",
+    "result": "Added the repository https://repo.example.org/basecamp-0.3/logos-repo.json. https://repo.example.org/basecamp-0.3/logos-repo.json has 4 packages.",
+    "lists": "https://repo.example.org/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
    }
   ],
   "tag": "convo",
@@ -676,9 +676,9 @@
   "say": "open scala",
   "history": [
    {
-    "said": "Add this repository: https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json and show me the apps in it",
-    "result": "Added the repository https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json. https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has 4 packages.",
-    "lists": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
+    "said": "Add this repository: https://repo.example.org/basecamp-0.3/logos-repo.json and show me the apps in it",
+    "result": "Added the repository https://repo.example.org/basecamp-0.3/logos-repo.json. https://repo.example.org/basecamp-0.3/logos-repo.json has 4 packages.",
+    "lists": "https://repo.example.org/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
    }
   ],
   "tag": "convo",
@@ -698,9 +698,9 @@
   "tag": "convo",
   "history": [
    {
-    "said": "Add this repository: https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json and show me the apps in it",
-    "result": "Added the repository https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json. https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has 4 packages.",
-    "lists": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
+    "said": "Add this repository: https://repo.example.org/basecamp-0.3/logos-repo.json and show me the apps in it",
+    "result": "Added the repository https://repo.example.org/basecamp-0.3/logos-repo.json. https://repo.example.org/basecamp-0.3/logos-repo.json has 4 packages.",
+    "lists": "https://repo.example.org/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
    },
    {
     "said": "what is kym?",
@@ -737,9 +737,9 @@
   "say": "nainstaluj tu třetí",
   "history": [
    {
-    "said": "Add this repository: https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json and show me the apps in it",
-    "result": "Added the repository https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json. https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has 4 packages.",
-    "lists": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
+    "said": "Add this repository: https://repo.example.org/basecamp-0.3/logos-repo.json and show me the apps in it",
+    "result": "Added the repository https://repo.example.org/basecamp-0.3/logos-repo.json. https://repo.example.org/basecamp-0.3/logos-repo.json has 4 packages.",
+    "lists": "https://repo.example.org/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
    }
   ],
   "tag": "convo",

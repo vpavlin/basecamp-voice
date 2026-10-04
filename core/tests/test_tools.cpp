@@ -308,7 +308,7 @@ LOGOS_TEST(add_a_repository_then_list_what_it_has) {
         return Json::array({{{"name", "kym"}, {"type", "ui_qml"}}, {{"name", "kym_core"}, {"type", "core"}}});
     };
     Tools t = makeTools(bc);
-    const std::string url = "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json";
+    const std::string url = "https://repo.example.org/basecamp-0.3/logos-repo.json";
     Prepared p = t.prepare({{"tool", "add_repository"}, {"args", {{"url", url}}}});
     LOGOS_ASSERT_TRUE(p.ok);
     LOGOS_ASSERT_TRUE(p.mutating);
