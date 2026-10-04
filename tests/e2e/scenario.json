@@ -1,0 +1,258 @@
+{
+ "steps": [
+  {
+   "sleepMs": 3000
+  },
+  {
+   "viewAction": {
+    "intent": "basecamp.apps.launch",
+    "params": {
+     "app": "basecamp_voice"
+    }
+   }
+  },
+  {
+   "module": "modules_state",
+   "method": "is_ready",
+   "args": [
+    "basecamp_voice_core"
+   ],
+   "retry": 30,
+   "delayMs": 1000,
+   "until": "truthy"
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": []
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submit",
+   "args": [
+    "open eth rpc"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 60,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j1\",\"reply\":\"\",\"state\":\"awaiting_confirmation\"",
+    "\"id\":\"j1\",\"reply\":\"\",\"state\":\"failed\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "confirm",
+   "args": [
+    "j1"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 240,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j1\",\"reply\":\"\",\"state\":\"done\"",
+    "\"id\":\"j1\",\"reply\":\"\",\"state\":\"failed\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submit",
+   "args": [
+    "call eth_rpc_module.list_chains"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 60,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j2\",\"reply\":\"\",\"state\":\"awaiting_confirmation\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "confirm",
+   "args": [
+    "j2"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 60,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j2\",\"reply\":\"\",\"state\":\"done\"",
+    "\"id\":\"j2\",\"reply\":\"\",\"state\":\"failed\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submit",
+   "args": [
+    "call eth_rpc_module.get_chain_config(1)"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 60,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j3\",\"reply\":\"\",\"state\":\"awaiting_confirmation\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "confirm",
+   "args": [
+    "j3"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 60,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j3\",\"reply\":\"\",\"state\":\"failed\"",
+    "\"id\":\"j3\",\"reply\":\"\",\"state\":\"done\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submit",
+   "args": [
+    "call eth_rpc_module.list_chainz"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 60,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j4\",\"reply\":\"\",\"state\":\"awaiting_confirmation\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "confirm",
+   "args": [
+    "j4"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 60,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j4\",\"reply\":\"\",\"state\":\"failed\"",
+    "\"id\":\"j4\",\"reply\":\"\",\"state\":\"done\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submit",
+   "args": [
+    "call token_list_module.list_tokens"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 60,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j5\",\"reply\":\"\",\"state\":\"awaiting_confirmation\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "confirm",
+   "args": [
+    "j5"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 60,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j5\",\"reply\":\"\",\"state\":\"failed\"",
+    "\"id\":\"j5\",\"reply\":\"\",\"state\":\"done\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submit",
+   "args": [
+    "open wallet"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submit",
+   "args": [
+    "call package_manager.uninstallPackage(eth_rpc_ui)"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submit",
+   "args": [
+    "install token list module"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 60,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j8\",\"reply\":\"\",\"state\":\"awaiting_confirmation\"",
+    "\"id\":\"j8\",\"reply\":\"\",\"state\":\"failed\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "cancel",
+   "args": [
+    "j8"
+   ]
+  },
+  {
+   "sleepMs": 1500
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": []
+  },
+  {
+   "module": "modules_state",
+   "method": "list_modules",
+   "args": []
+  }
+ ]
+}

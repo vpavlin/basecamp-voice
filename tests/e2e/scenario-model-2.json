@@ -1,0 +1,154 @@
+{
+ "steps": [
+  {
+   "module": "basecamp_voice_core",
+   "method": "startSetup",
+   "args": []
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 300,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"missingBytes\":0,\"state\":\"ready\"",
+    "\"state\":\"failed\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 120,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"mode\":\"local\"",
+    "\"state\":\"failed\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 180,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"server\":\"ready\"",
+    "\"server\":\"failed"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submit",
+   "args": [
+    "install and open the token list app"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 240,
+   "delayMs": 1000,
+   "untilContains": [
+    "awaiting_confirmation",
+    "\"state\":\"failed\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "confirm",
+   "args": [
+    "j1"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 240,
+   "delayMs": 1000,
+   "untilContains": [
+    "token_list_module is running",
+    "\"state\":\"failed\""
+   ]
+  },
+  {
+   "sleepMs": 20000
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submitRecording",
+   "args": [
+    "/tmp/bcv/speech/open-token-list.wav"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 240,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"id\":\"j2\""
+   ]
+  },
+  {
+   "sleepMs": 25000
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submit",
+   "args": [
+    "otevři peněženku"
+   ]
+  },
+  {
+   "sleepMs": 30000
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": []
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "configure",
+   "args": [
+    "{\"localModel\":\"qwen3.5-2b\"}"
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "startSetup",
+   "args": []
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": [],
+   "retry": 120,
+   "delayMs": 1000,
+   "untilContains": [
+    "\"llm\":\"qwen3.5-2b\",\"missingBytes\":0,\"state\":\"ready\"",
+    "\"state\":\"failed\""
+   ]
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "submit",
+   "args": [
+    "open the eth rpc app"
+   ]
+  },
+  {
+   "sleepMs": 30000
+  },
+  {
+   "module": "basecamp_voice_core",
+   "method": "snapshot",
+   "args": []
+  }
+ ]
+}

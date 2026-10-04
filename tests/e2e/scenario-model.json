@@ -1,0 +1,7 @@
+{"steps":[
+ {"sleepMs": 3000},
+ {"viewAction":{"intent":"basecamp.apps.launch","params":{"app":"basecamp_voice"}}},
+ {"module":"modules_state","method":"is_ready","args":["basecamp_voice_core"],"retry":30,"delayMs":1000,"until":"truthy"},
+ {"module":"basecamp_voice_core","method":"snapshot","args":[],"retry":20,"delayMs":1000,"untilContains":["\"setup\""]},
+ {"waitScript":"/tmp/voice_spike/seeded.json"}
+]}

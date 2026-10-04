@@ -1,0 +1,6 @@
+{"args":["blockchain_module"],"attempt":0,"method":"is_ready","module":"modules_state","ms":4,"ok":true,"result":false,"step":3,"t":1791065741045}
+{"t":1791065741048,"viewNote":"raising basecamp.apps.launch {\"app\":\"blockchain_ui\"}"}
+{"t":1791065741656,"viewNote":"intent basecamp.apps.launch replied {\"error\":\"\",\"ok\":true}"}
+{"args":["blockchain_module"],"attempt":1,"method":"is_ready","module":"modules_state","ms":1,"ok":true,"result":true,"step":3,"t":1791065742046}
+{"args":[],"attempt":0,"error":{"code":"object_unavailable","message":"failed to acquire remote object 'blockchain_ui' (module not loaded, not published, or transport failure)","origin":"blockchain_ui"},"method":"getPluginMethods","module":"blockchain_ui","ms":120377,"ok":false,"step":6,"t":1791065866427}
+{"args":[],"attempt":0,"error":{"code":"object_unavailable","message":"failed to acquire remote object 'blockchain_ui' (module not loaded, not published, or transport failure)","origin":"blockchain_ui"},"method":"getTimeInfo","module":"blockchain_ui","ms":120000,"ok":false,"step":7,"t":1791065987427}

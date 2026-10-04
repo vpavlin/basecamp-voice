@@ -1,0 +1,9 @@
+{"steps":[
+ {"sleepMs": 3000},
+ {"viewAction":{"intent":"basecamp.apps.launch","params":{"app":"blockchain_ui"}}},
+ {"module":"modules_state","method":"is_ready","args":["blockchain_module"],"retry":30,"delayMs":1000,"until":"truthy"},
+ {"sleepMs": 4000},
+ {"module":"modules_state","method":"list_modules","args":[]},
+ {"module":"blockchain_ui","method":"getPluginMethods","args":[]},
+ {"module":"blockchain_ui","method":"getTimeInfo","args":[]}
+]}
