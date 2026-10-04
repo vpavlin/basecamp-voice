@@ -17,6 +17,17 @@ see `TESTING.md`. See
 model).
 Background: `BRIEF.md`, `FINDINGS.md`, decisions in `docs/adr/`.
 
+## Platforms
+
+| Platform | Build | Tested |
+|---|---|---|
+| Linux x86_64 | CI | yes |
+| Linux ARM64 | CI | no |
+| macOS Apple Silicon | CI | no; see `docs/macos.md` (the microphone works differently there) |
+
+CI (`.github/workflows/build.yml`) builds every platform and merges them into
+one package per module. Tags `v*` become releases.
+
 ## Layout
 
 | Path | What |

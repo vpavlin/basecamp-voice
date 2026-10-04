@@ -1,5 +1,7 @@
 # Trying Basecamp Voice (for 2026-10-04)
 
+On a Mac, see `docs/macos.md` ("Trying it on a Mac").
+
 Everything below runs on this laptop. Nothing has been committed or published.
 
 ## Quickest path: an isolated Basecamp (your real data untouched)

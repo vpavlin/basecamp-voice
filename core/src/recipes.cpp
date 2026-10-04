@@ -231,10 +231,11 @@ std::map<std::string, std::string> resolveFacts(const Recipe& r, const std::stri
     for (const auto& f : r.facts) {
         // Only Logos settings: ~/.config/Logos/<App>.conf (or its macOS plist), nothing else.
         if (!startsWith(f.file, "Logos/") || f.file.find("..") != std::string::npos) continue;
+        // The .conf file first (Linux; also what the tests write), then, on
+        // macOS, Qt's plist through `defaults`.
+        std::string v = iniValue(home + "/.config/" + f.file + ".conf", f.key);
 #if defined(__APPLE__)
-        const std::string v = macSetting(f.file, f.key);
-#else
-        const std::string v = iniValue(home + "/.config/" + f.file + ".conf", f.key);
+        if (v.empty()) v = macSetting(f.file, f.key);
 #endif
         if (f.mustExist) {
             struct stat st;
