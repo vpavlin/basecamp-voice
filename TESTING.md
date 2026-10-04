@@ -2,7 +2,7 @@
 
 On a Mac, see `docs/macos.md` ("Trying it on a Mac").
 
-Everything below runs on this laptop. Nothing has been committed or published.
+Everything below runs on this laptop.
 
 ## Quickest path: an isolated Basecamp (your real data untouched)
 
@@ -79,6 +79,6 @@ To use your normal Basecamp instead: quit it and run
   `<user-dir>/module_data/basecamp_voice_core/<id>/assets/`.
 - **Settings:** `…/settings.json`, owner-only because it may hold an API key.
 - **Automated checks:**
-  - `(cd core && nix build .#unit-tests)`: 52 tests;
+  - `(cd core && nix build .#unit-tests)`: 69 tests;
   - `view/test/check.sh`: the window, offscreen;
   - `tests/e2e/run.sh`: real Basecamp; see the README.

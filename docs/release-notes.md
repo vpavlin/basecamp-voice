@@ -12,7 +12,10 @@ Each package covers Linux x86_64, Linux ARM64 and macOS Apple Silicon.
 
 ## Installing
 
-See `TESTING.md` in the repository: `scripts/install-local.sh` installs both
+- **macOS:** follow [Trying it on a Mac](https://github.com/vpavlin/basecamp-voice/blob/master/docs/macos.md#trying-it-on-a-mac).
+  You need [Basecamp 0.3.1 for Apple Silicon](https://github.com/logos-co/logos-basecamp/releases/download/0.3.1/LogosBasecamp-Desktop-v0.3.1-aeb819-aarch64.dmg).
+  Basecamp's Package Manager can install both files with **Install Local Package**.
+- **Linux:** see `TESTING.md` in the repository: `scripts/install-local.sh` installs both
 packages into Basecamp's data folder. On first open, Basecamp Voice offers to
 download the speech model, the language model and the llama.cpp runtime (about
 3 GB). Every file is pinned and checked against its sha256.
