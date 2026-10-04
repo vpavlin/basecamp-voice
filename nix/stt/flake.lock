@@ -1,0 +1,45 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1790822859,
+        "narHash": "sha256-69xHQhAeMAD2wDXO7T2pcOZIF9Sga2W+JkmY2a11Ops=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "c59305bab2065cfecc4944690d9eedbb56f3a9fa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "whisper-src": "whisper-src"
+      }
+    },
+    "whisper-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790947273,
+        "narHash": "sha256-BgDKZ2QjGfC0DGYVi4Itf63mESaATJQtqdvyDJzvLd0=",
+        "owner": "ggml-org",
+        "repo": "whisper.cpp",
+        "rev": "60c0be6ac8fa71b1a2ae2dd938a31a34a508e774",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ggml-org",
+        "repo": "whisper.cpp",
+        "rev": "60c0be6ac8fa71b1a2ae2dd938a31a34a508e774",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
