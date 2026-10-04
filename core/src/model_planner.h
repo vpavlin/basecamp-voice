@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 
 #include "planner.h"
+#include "tools.h"
 
 // Plans with a language model (docs/adr/0006): a fixed system prompt
 // (system_prompt.inc), the facts of this moment (Tools::context) and a JSON
@@ -22,8 +23,10 @@ public:
 
     // The conversation so far (Engine::history), or {} for none.
     using History = std::function<nlohmann::json()>;
+    // The app intents that can be raised now (Tools::intents), or {} for none.
+    using Intents = std::function<std::vector<AppIntent>()>;
 
-    ModelPlanner(Context context, Chat chat, History history = {});
+    ModelPlanner(Context context, Chat chat, History history = {}, Intents intents = {});
 
     // The "Conversation so far" block the model reads (mirrored by eval.py).
     static std::string historyText(const nlohmann::json& history);
@@ -33,7 +36,11 @@ public:
     bool continues() const override { return true; }
 
     static const char* systemPrompt();
+    // Without app intents (the warm-up request uses it).
     static const nlohmann::json& schema();
+    // The intent tool narrowed to these intents and their parameters; removed
+    // when there are none.
+    static nlohmann::json schemaFor(const std::vector<AppIntent>& intents);
     // The model's JSON -> {"ok":true,"steps":[...],"reply":"..."} or {"ok":false,"error":...}.
     static nlohmann::json parse(const std::string& content);
 
@@ -42,5 +49,6 @@ private:
 
     Context m_context;
     History m_history;
+    Intents m_intents;
     Chat m_chat;
 };

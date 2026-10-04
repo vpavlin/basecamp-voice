@@ -13,8 +13,8 @@ const char* kSchema =
     ;
 }
 
-ModelPlanner::ModelPlanner(Context context, Chat chat, History history)
-    : m_context(std::move(context)), m_chat(std::move(chat)), m_history(std::move(history)) {}
+ModelPlanner::ModelPlanner(Context context, Chat chat, History history, Intents intents)
+    : m_context(std::move(context)), m_history(std::move(history)), m_intents(std::move(intents)), m_chat(std::move(chat)) {}
 
 std::string ModelPlanner::historyText(const Json& history) {
     if (!history.is_array() || history.empty()) return {};
@@ -32,7 +32,7 @@ const char* ModelPlanner::systemPrompt() { return kSystemPrompt; }
 
 // The base schema, with the recipe tool narrowed to the recipes compiled in:
 // the grammar then cannot produce one that does not exist.
-const Json& ModelPlanner::schema() {
+static const Json& baseSchema() {
     static const Json s = [] {
         Json j = Json::parse(kSchema);
         Json& any = j["properties"]["steps"]["items"]["anyOf"];
@@ -52,6 +52,40 @@ const Json& ModelPlanner::schema() {
         }
         return j;
     }();
+    return s;
+}
+
+// Likewise the intent tool: one variant per intent, with exactly its
+// parameters and their types, so the model cannot name one that is not there.
+Json ModelPlanner::schemaFor(const std::vector<AppIntent>& intents) {
+    Json j = baseSchema();
+    Json& any = j["properties"]["steps"]["items"]["anyOf"];
+    for (auto it = any.begin(); it != any.end(); ++it) {
+        if ((*it)["properties"]["tool"]["const"] != "intent") continue;
+        if (intents.empty()) { any.erase(it); break; }
+        Json variants = Json::array();
+        for (const auto& a : intents) {
+            Json props = Json::object(), required = Json::array();
+            for (const auto& p : a.params) {
+                const std::string t = p.type == "bool" ? "boolean" : p.type;
+                props[p.name] = (t == "string" || t == "number" || t == "boolean" || t == "object" || t == "array")
+                                    ? Json{{"type", t}} : Json::object();
+                if (p.required) required.push_back(p.name);
+            }
+            variants.push_back({{"type", "object"},
+                                {"properties", {{"intent", {{"const", a.intent}}},
+                                                {"params", {{"type", "object"}, {"properties", props}, {"required", required},
+                                                            {"additionalProperties", false}}}}},
+                                {"required", {"intent", "params"}}, {"additionalProperties", false}});
+        }
+        (*it)["properties"]["args"] = {{"anyOf", variants}};
+        break;
+    }
+    return j;
+}
+
+const Json& ModelPlanner::schema() {
+    static const Json s = schemaFor({});
     return s;
 }
 
@@ -98,7 +132,8 @@ Json ModelPlanner::ask(const std::string& userMessage) {
     });
     std::string content, error;
     Json stats = Json::object();
-    if (!m_chat(messages, schema(), &content, &error, &stats))
+    const Json sch = m_intents ? schemaFor(m_intents()) : schema();
+    if (!m_chat(messages, sch, &content, &error, &stats))
         return {{"ok", false}, {"error", error}};
     Json plan = parse(content);
     plan["stats"] = stats;

@@ -13,3 +13,4 @@ Write the ADR when the decision is made.
 | [0006](0006-how-the-model-knows-basecamp.md) | How the model knows Basecamp | Proposed |
 | [0007](0007-everything-runs-inside-basecamp.md) | Everything runs inside Basecamp | Accepted |
 | [0008](0008-recipes.md) | Recipes for what apps' buttons do | Accepted |
+| [0009](0009-app-intents.md) | Asking apps through Basecamp's intents | Proposed |

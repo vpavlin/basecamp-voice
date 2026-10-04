@@ -29,6 +29,7 @@ logos_test(
         test_review_fixes.cpp
         test_rounds.cpp
         test_recipes.cpp
+        test_intents.cpp
     EXTRA_INCLUDES
         ../src
     EXTRA_LINK_LIBS

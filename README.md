@@ -11,6 +11,10 @@ Status: all three steps wired and running inside Basecamp v0.3.1.
 - **Speech:** Parakeet runs inside the core module.
 - **Planning:** the language model plans each request through a JSON schema.
 
+Apps that provide Basecamp intents can be asked directly: "add dentist on
+Tuesday at 3" goes to Scala, the calendar, after Basecamp asks you
+(`docs/adr/0009-app-intents.md`).
+
 Until setup is done, a fixed-phrase planner handles typed commands. To try it,
 see `TESTING.md`. See
 `docs/adr/0007` (everything inside Basecamp) and `docs/model-eval.md` (which

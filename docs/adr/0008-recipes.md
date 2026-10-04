@@ -43,4 +43,5 @@ First recipes:
 - **Recipes are knowledge we maintain.** They need checking when an app
   changes; each records its source and version.
 - **The right long-term mechanism is app intents** (`provides` such as
-  `blockchain.node.start`). To propose upstream.
+  `blockchain.node.start`). *Update:* Basecamp 0.3.1 already has them; an app
+  that adopts them needs no recipe (ADR 0009).

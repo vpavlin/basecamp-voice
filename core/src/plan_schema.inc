@@ -15,6 +15,7 @@ R"SCHEMA({
           {"type": "object", "properties": {"tool": {"const": "status"}, "args": {"type": "object", "properties": {}, "additionalProperties": false}}, "required": ["tool", "args"], "additionalProperties": false},
           {"type": "object", "properties": {"tool": {"const": "module_methods"}, "args": {"type": "object", "properties": {"module": {"type": "string"}}, "required": ["module"], "additionalProperties": false}}, "required": ["tool", "args"], "additionalProperties": false},
           {"type": "object", "properties": {"tool": {"const": "recipe"}, "args": {"type": "object", "properties": {"app": {"type": "string"}, "action": {"type": "string"}}, "required": ["app", "action"], "additionalProperties": false}}, "required": ["tool", "args"], "additionalProperties": false},
+          {"type": "object", "properties": {"tool": {"const": "intent"}, "args": {"type": "object", "properties": {"intent": {"type": "string"}, "params": {"type": "object"}}, "required": ["intent", "params"], "additionalProperties": false}}, "required": ["tool", "args"], "additionalProperties": false},
           {"type": "object", "properties": {"tool": {"const": "call"}, "args": {"type": "object", "properties": {"module": {"type": "string"}, "method": {"type": "string"}, "args": {"type": "array", "maxItems": 4}}, "required": ["module", "method", "args"], "additionalProperties": false}}, "required": ["tool", "args"], "additionalProperties": false}
         ]
       }

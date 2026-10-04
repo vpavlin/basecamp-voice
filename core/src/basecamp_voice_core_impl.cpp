@@ -206,7 +206,8 @@ public:
             [this, ep](const Json& messages, const Json& schema, std::string* content, std::string* error, Json* stats) {
                 return chatJson(ep, messages, schema, 300, content, error, [this] { return stopping.load(); }, stats);
             },
-            [this]() { return engine->history(6); });
+            [this]() { return engine->history(6); },
+            [this]() { return engine->tools().intents(); });
         Json result = done ? planner.planNext(text, *done) : planner.plan(text);
         // The local server died mid-request (a GPU driver reset, say): start it
         // again, on the CPU if it was the GPU, and ask once more.
@@ -222,7 +223,8 @@ public:
                     [ep](const Json& messages, const Json& schema, std::string* content, std::string* error, Json* stats) {
                         return chatJson(ep, messages, schema, 300, content, error, {}, stats);
                     },
-                    [this]() { return engine->history(6); });
+                    [this]() { return engine->history(6); },
+                    [this]() { return engine->tools().intents(); });
                 result = done ? again.planNext(text, *done) : again.plan(text);
             }
         }

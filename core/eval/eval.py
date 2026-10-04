@@ -65,10 +65,44 @@ for v in SCHEMA["properties"]["steps"]["items"]["anyOf"]:
             "action": {"enum": [a["id"] for a in r["actions"]]}}, "required": ["app", "action"], "additionalProperties": False}
             for r in RECIPES]}
 
-def context(text, catalog, installed, running, methods, facts=None):
+# Cases run at a fixed moment, so "tomorrow" has one right answer.
+NOW = "Now: Sunday 2026-10-04 10:12 (local time)"
+MAX_INTENTS = 12
+
+def load_intents(app, path):
+    """What an app's metadata.json provides, as Tools::intentsOf reads it."""
+    out = []
+    for e in json.load(open(path)).get("provides", []):
+        out.append({"app": app, "intent": e["intent"], "description": e.get("description", ""),
+                    "readOnly": e.get("readOnly") is True, "params": e.get("params", [])})
+    return out
+
+INTENTS = {"scala_ui": load_intents("scala_ui", here / "scala_ui.metadata.json")}
+
+def schema_for(intents):
+    """Mirror of ModelPlanner::schemaFor."""
+    s = json.loads(json.dumps(SCHEMA))
+    anyof = s["properties"]["steps"]["items"]["anyOf"]
+    for i, v in enumerate(anyof):
+        if v["properties"]["tool"].get("const") != "intent": continue
+        if not intents:
+            del anyof[i]
+            break
+        variants = []
+        for a in intents:
+            props = {p["name"]: ({"type": "boolean" if p.get("type") == "bool" else p.get("type", "string")}) for p in a["params"]}
+            req = [p["name"] for p in a["params"] if p.get("required") is True]
+            variants.append({"type": "object", "properties": {"intent": {"const": a["intent"]},
+                "params": {"type": "object", "properties": props, "required": req, "additionalProperties": False}},
+                "required": ["intent", "params"], "additionalProperties": False})
+        v["properties"]["args"] = {"anyOf": variants}
+        break
+    return s
+
+def context(text, catalog, installed, running, methods, facts=None, intents=()):
     """Mirror of Tools::context in core/src/tools.cpp: keep the two identical."""
     words = [w for w in re.findall(r"[a-z0-9]+", text.lower()) if len(w) >= 3 and w not in STOPWORDS]
-    lines = []
+    lines = [NOW]
     inst = [n for n in installed if n not in SYSTEM_MODULES]
     apps = [n for n in inst if catalog.get(n, {}).get("type") == "ui_qml"]
     mods = [n for n in inst if catalog.get(n, {}).get("type") != "ui_qml"]
@@ -107,6 +141,18 @@ def context(text, catalog, installed, running, methods, facts=None):
     if rec_lines:
         lines.append("Recipes (they do what the app's own buttons do; use them when they fit):")
         lines += rec_lines
+    int_lines = []
+    for a in intents:
+        if len(intents) > MAX_INTENTS and not any(w in norm(a["app"] + " " + a["intent"] + " " + a["description"]) for w in words):
+            continue
+        ps = "; ".join(p["name"] + ("" if p.get("required") is True else "?") +
+                       ("" if p.get("type", "string") == "string" else f' ({p["type"]})') +
+                       (": " + p["description"][:120] if p.get("description") else "") for p in a["params"])
+        int_lines.append(f'- {a["intent"]} ({a["app"]}{", reads only" if a["readOnly"] else ""}): {a["description"][:140]}' +
+                         (" Params: " + ps if ps else ""))
+    if int_lines:
+        lines.append("App intents (ask an app to do something; Basecamp asks the user and shows the app; ? = optional):")
+        lines += int_lines
     for m in run:
         if m in methods:
             lines.append(f"Methods of {m}: " + ", ".join(methods[m]))
@@ -121,11 +167,11 @@ def history_text(history):
         if h.get("lists"): out += f'  Listed: {h["lists"]}\n'
     return out + "\n"
 
-def ask(base, user):
+def ask(base, user, schema=None):
     body = {"messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
             "temperature": 0, "max_tokens": 400,
             "chat_template_kwargs": {"enable_thinking": False},
-            "response_format": {"type": "json_schema", "json_schema": {"name": "plan", "schema": SCHEMA}}}
+            "response_format": {"type": "json_schema", "json_schema": {"name": "plan", "schema": schema or schema_for([])}}}
     req = urllib.request.Request(base + "/v1/chat/completions", json.dumps(body).encode(), {"Content-Type": "application/json"})
     t = time.time()
     r = json.load(urllib.request.urlopen(req, timeout=300))
@@ -136,20 +182,25 @@ def ask(base, user):
         plan = {"reply": "UNPARSEABLE: " + repr(msg)[:300], "steps": [{"tool": "?"}]}
     return plan, time.time() - t, r.get("usage", {})
 
-def engine_filter(steps):
+def engine_filter(steps, read_only=()):
     """Mirror of Engine::planJob: drop list/status steps when the plan also acts."""
-    acts = any(s.get("tool") in ("install", "open_app", "recipe", "call", "add_repository") for s in steps)
+    acts = any(s.get("tool") in ("install", "open_app", "recipe", "call", "add_repository") or
+               (s.get("tool") == "intent" and s.get("args", {}).get("intent") not in read_only) for s in steps)
     # a repository listing right after adding it is the point, not a check
     repo_listing = lambda s: s.get("tool") == "list_available" and s.get("args", {}).get("repository")
     return [s for s in steps if not (acts and s.get("tool") in ("list_installed", "list_available", "status") and not repo_listing(s))]
 
-def matches(got, want):
-    got = engine_filter(got)
+def matches(got, want, read_only=()):
+    got = engine_filter(got, read_only)
     if len(got) != len(want): return False
     for g, w in zip(got, want):
         if g["tool"] != w["tool"]: return False
         for k, v in w.get("args", {}).items():
-            if g["args"].get(k) != v: return False
+            if k == "params":
+                # The wanted ones, any case; others the model added may stay.
+                gp = g["args"].get("params") or {}
+                if any(str(gp.get(pk, "")).lower() != str(pv).lower() for pk, pv in v.items()): return False
+            elif g["args"].get(k) != v: return False
     return True
 
 if __name__ == "__main__":
@@ -163,15 +214,17 @@ if __name__ == "__main__":
     passed = 0
     times = []
     for c in cases:
-        user = history_text(c.get("history")) + context(c["say"], catalog, c.get("installed", []), c.get("running", []), c.get("methods", {}), c.get("facts"))
+        intents = [a for app in c.get("installed", []) for a in INTENTS.get(app, [])]
+        read_only = {a["intent"] for a in intents if a["readOnly"]}
+        user = history_text(c.get("history")) + context(c["say"], catalog, c.get("installed", []), c.get("running", []), c.get("methods", {}), c.get("facts"), intents)
         if c.get("done"):
             # A later round: the same text ModelPlanner::planNext adds.
             user += "\n\nDone so far for this request:\n" + "".join(f"- {d['step']}: {d['result'][:300]}\n" for d in c["done"])
             user += ("\nPlan only what is left of the request. If nothing is left, or you need something from the user "
                      "(say what), return no steps and say so in reply.")
-        plan, secs, usage = ask(base, user)
+        plan, secs, usage = ask(base, user, schema_for(intents))
         wants = c.get("want_any", [c.get("want", [])])
-        ok = any(matches(plan["steps"], w) for w in wants)
+        ok = any(matches(plan["steps"], w, read_only) for w in wants)
         times.append(secs)
         passed += ok
         print(f"{'PASS' if ok else 'FAIL'} {secs:5.1f}s {usage.get('prompt_tokens','?'):>5}t  {c['say']!r}")

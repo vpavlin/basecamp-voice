@@ -24,6 +24,12 @@ const int kMaxRounds = 4;
 Engine::Engine(Bus& bus, Planner& planner) : m_bus(bus), m_planner(planner) {
     m_tools = std::make_unique<Tools>(m_bus, [this](const std::string& app) { return openAppThroughView(app); });
     m_tools->stopping = [this] { return m_stopFlag.load(); };
+    m_tools->raiseIntent = [this](const std::string& intent, const Json& params) {
+        std::string error;
+        CallResult r = requestThroughView(intent, params, intentWaitMs, &error);
+        if (!r.ok) r.error = error.empty() ? "the Basecamp Voice window has to be open to ask apps." : error;
+        return r;
+    };
     m_worker = std::thread([this]() { workerLoop(); });
 }
 
@@ -253,7 +259,8 @@ void Engine::planJob(const std::string& jobId) {
         bool acts = false;
         for (const auto& p : prepared) {
             const std::string t = p.step.value("tool", "");
-            acts = acts || t == "install" || t == "open_app" || t == "recipe" || t == "call" || t == "add_repository";
+            acts = acts || t == "install" || t == "open_app" || t == "recipe" || t == "call" || t == "add_repository" ||
+                   (t == "intent" && p.mutating);
         }
         for (const auto& p : prepared) {
             if (!error.empty()) break;
@@ -360,7 +367,8 @@ void Engine::runJob(const std::string& jobId) {
                 for (size_t k = job.roundStart; k < job.steps.size(); ++k) {
                     const std::string tool = job.steps[k].step.value("tool", "");
                     informative = informative || tool == "open_app" || tool == "module_methods" ||
-                                  tool == "list_installed" || tool == "list_available" || tool == "status";
+                                  tool == "list_installed" || tool == "list_available" || tool == "status" ||
+                                  (tool == "intent" && !job.steps[k].mutating);
                 }
                 if (informative && m_planner.continues() && job.round + 1 < kMaxRounds && !job.cancelRequested) {
                     job.round += 1;
@@ -427,10 +435,26 @@ void Engine::runJob(const std::string& jobId) {
 }
 
 CallResult Engine::openAppThroughView(const std::string& app) {
+    std::string error;
+    CallResult r = requestThroughView("basecamp.apps.launch", {{"app", app}}, viewWaitMs, &error);
+    if (!r.ok) {
+        r.error = error == "no answer" ? "Basecamp did not answer the request to open " + app + "."
+                                       : "the Basecamp Voice window has to be open to open apps.";
+        return r;
+    }
+    const Json& res = r.value;
+    if (res.is_object() && res.value("ok", false)) return r;
+    std::string err = res.is_object() ? res.value("error", std::string()) : std::string();
+    CallResult f;
+    f.error = err.empty() ? "Basecamp refused to open it." : "Basecamp said " + err + ".";
+    return f;
+}
+
+CallResult Engine::requestThroughView(const std::string& intent, const Json& params, int waitMs, std::string* error) {
     std::unique_lock<std::mutex> lk(m_mu);
     ViewAction a;
     a.id = "a" + std::to_string(++m_nextAction);
-    a.action = {{"intent", "basecamp.apps.launch"}, {"params", {{"app", app}}}};
+    a.action = {{"intent", intent}, {"params", params}};
     const std::string id = a.id;
     m_actions.push_back(a);
 
@@ -438,26 +462,29 @@ CallResult Engine::openAppThroughView(const std::string& app) {
         for (auto& x : m_actions) if (x.id == id) return &x;
         return nullptr;
     };
-    m_cv.wait_for(lk, std::chrono::milliseconds(viewWaitMs),
+    // The view takes the action on its next poll; if nobody takes it within
+    // viewWaitMs, the window is not open. Once taken, wait the full waitMs.
+    const auto start = std::chrono::steady_clock::now();
+    m_cv.wait_for(lk, std::chrono::milliseconds(std::min(waitMs, viewWaitMs)),
                   [&]() { return m_stopping || mine()->answered; });
+    if (!m_stopping && !mine()->answered && mine()->handedOut) {
+        const auto left = std::chrono::milliseconds(waitMs) -
+                          std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+        if (left.count() > 0)
+            m_cv.wait_for(lk, left, [&]() { return m_stopping || mine()->answered || m_stopFlag.load(); });
+    }
     ViewAction done = *mine();
     for (auto it = m_actions.begin(); it != m_actions.end(); ++it)
         if (it->id == id) { m_actions.erase(it); break; }
 
     CallResult r;
     if (!done.answered) {
-        r.error = done.handedOut ? "Basecamp did not answer the request to open " + app + "."
-                                 : "the Basecamp Voice window has to be open to open apps.";
+        *error = done.handedOut ? "no answer" : "";
+        if (done.handedOut && intent != "basecamp.apps.launch") *error = "No answer from Basecamp about " + intent + ".";
         return r;
     }
-    const Json& res = done.result;
-    if (res.is_object() && res.value("ok", false)) {
-        r.ok = true;
-        r.value = res;
-        return r;
-    }
-    std::string err = res.is_object() ? res.value("error", std::string()) : std::string();
-    r.error = err.empty() ? "Basecamp refused to open it." : "Basecamp said " + err + ".";
+    r.ok = true;
+    r.value = done.result;
     return r;
 }
 

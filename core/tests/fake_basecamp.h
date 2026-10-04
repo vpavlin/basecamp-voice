@@ -26,6 +26,7 @@ public:
     std::map<std::string, Json> methods;                                   // module -> getPluginMethods
     std::map<std::string, std::function<Json(const Json&)>> handlers;     // "module.method"
     std::map<std::string, std::string> downloadErrors;                    // name -> error row
+    std::map<std::string, std::string> installDirs;                       // name -> where it is installed
     std::vector<std::string> calls;
     std::mutex mu;
     std::map<std::string, std::function<void(const Json&)>> subscribers;   // "module.event"
@@ -95,8 +96,10 @@ public:
             for (const auto& n : installed) {
                 Json deps = Json::array();
                 if (catalog.count(n)) for (const auto& d : catalog[n].deps) deps.push_back(d);
-                list.push_back({{"name", n}, {"type", catalog.count(n) ? catalog[n].type : "core"},
-                                {"version", "0.1.0"}, {"dependencies", deps}});
+                Json e = {{"name", n}, {"type", catalog.count(n) ? catalog[n].type : "core"},
+                          {"version", "0.1.0"}, {"dependencies", deps}};
+                if (installDirs.count(n)) e["installDir"] = installDirs[n];
+                list.push_back(e);
             }
             r.value = list;
         } else if (key == "package_downloader.resolveDependencies" || key == "package_downloader.downloadResolvedDependencies") {

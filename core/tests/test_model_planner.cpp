@@ -24,8 +24,14 @@ LOGOS_TEST(model_answer_without_steps_is_a_reply) {
 }
 
 LOGOS_TEST(model_schema_allows_exactly_the_tools) {
-    const Json& items = ModelPlanner::schema()["properties"]["steps"]["items"]["anyOf"];
-    LOGOS_ASSERT_EQ(items.size(), size_t(9));
+    // Without app intents the intent tool is not offered at all.
+    LOGOS_ASSERT_EQ(ModelPlanner::schema()["properties"]["steps"]["items"]["anyOf"].size(), size_t(9));
+    AppIntent a;
+    a.app = "scala_ui";
+    a.intent = "scala.calendars.list";
+    const Json withIntent = ModelPlanner::schemaFor({a});
+    const Json& items = withIntent["properties"]["steps"]["items"]["anyOf"];
+    LOGOS_ASSERT_EQ(items.size(), size_t(10));
     std::set<std::string> tools;
     for (const auto& i : items) tools.insert(i["properties"]["tool"]["const"].get<std::string>());
     for (const auto& t : Tools::names()) LOGOS_ASSERT_TRUE(tools.count(t) == 1);

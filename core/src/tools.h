@@ -27,6 +27,16 @@ struct Prepared {
 // and an {"ok":false} inside a result counts as a failure.
 //
 // Not thread-safe: the engine calls it from its one worker thread.
+// An intent an installed app provides (its metadata.json "provides"), that
+// Basecamp Voice may raise (listed in its own "uses"). docs/adr/0009-app-intents.md
+struct AppIntent {
+    struct Param { std::string name, type, description; bool required = false; };
+    std::string app, intent, description;
+    bool readOnly = false;   // the provider's word that it changes nothing
+    bool handoff = false;    // the provider keeps the user (Basecamp does not return them)
+    std::vector<Param> params;
+};
+
 class Tools {
 public:
     using OpenApp = std::function<CallResult(const std::string& app)>;
@@ -52,6 +62,16 @@ public:
     // Where recipe facts are read from (~/.config/Logos/...). Tests point it elsewhere.
     std::string homeDir;
 
+    // Raises an intent through the view (logos.request); the answer is
+    // Basecamp's envelope {ok, data, error}. Unset: intents cannot run.
+    std::function<CallResult(const std::string& intent, const Json& params)> raiseIntent;
+    // The app whose "uses" says which intents may be raised.
+    std::string selfApp = "basecamp_voice";
+    // What the installed apps provide that this app may raise.
+    std::vector<AppIntent> intents();
+    // "Now: Sunday 2026-10-04 14:05 (local time)": what "tomorrow at 3" is measured from.
+    std::function<std::string()> nowText;
+
     int callTimeoutMs = 120000;
     int installTimeoutMs = 300000;
     int readyWaitMs = 60000;
@@ -75,12 +95,14 @@ private:
         long long size = 0;
         std::vector<std::string> dependencies;
         bool installed = false;
+        std::string installDir;
     };
 
     Prepared prepareInstall(const Json& args);
     Prepared prepareOpenApp(const Json& args);
     Prepared prepareCall(const Json& args);
     Prepared prepareRecipe(const Json& args);
+    Prepared prepareIntent(const Json& args);
 
     CallResult runListInstalled();
     CallResult runListAvailable(const Json& args);
@@ -91,6 +113,7 @@ private:
     CallResult runStatus();
     CallResult runRecipe(const Json& args, const Progress& progress);
     CallResult runAddRepository(const Json& args);
+    CallResult runIntent(const Json& args);
 
     CallResult invoke(const std::string& module, const std::string& method,
                       const Json& args, int timeoutMs);
@@ -99,6 +122,7 @@ private:
 
     // The catalog joined with what is installed, keyed by package name.
     bool loadPackages(std::map<std::string, Package>* out, std::string* error);
+    std::vector<AppIntent> intentsOf(const std::map<std::string, Package>& packages) const;
     Json installedForResolver(const std::map<std::string, Package>& packages) const;
     // Resolve a spoken or typed name. forApps: only ui_qml packages, and a
     // core's name finds the app that depends on it.

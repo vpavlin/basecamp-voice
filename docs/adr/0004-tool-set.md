@@ -47,6 +47,8 @@ How the core checks a `call`:
 
 > **Added 2026-10-04:**
 > - **`recipe {app, action}`** (ADR 0008).
+> - **`intent {intent, params}`** (ADR 0009): ask an installed app through
+>   Basecamp's own intents; Basecamp confirms every one with the user.
 > - **`add_repository {url}`:** https only, always confirmed, and the plan warns
 >   that its packages may be unsigned.
 > - **`list_available` takes an optional `repository`,** using

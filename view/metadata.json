@@ -1,15 +1,43 @@
 {
     "name": "basecamp_voice",
     "display_name": "Basecamp Voice",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Say what you want Basecamp to do: install packages, open apps, call modules",
     "author": "vpavlin",
     "type": "ui_qml",
     "category": "tools",
     "view": "Main.qml",
     "icon": "icon.png",
-    "dependencies": ["basecamp_voice_core"],
+    "dependencies": [
+        "basecamp_voice_core"
+    ],
     "uses": [
-        { "intent": "basecamp.apps.launch" }
+        {
+            "intent": "basecamp.apps.launch"
+        },
+        {
+            "intent": "scala.calendars.list"
+        },
+        {
+            "intent": "scala.events.list"
+        },
+        {
+            "intent": "scala.events.search"
+        },
+        {
+            "intent": "scala.event.create"
+        },
+        {
+            "intent": "scala.calendar.create"
+        },
+        {
+            "intent": "scala.calendar.join"
+        },
+        {
+            "intent": "scala.calendar.share"
+        },
+        {
+            "intent": "scala.calendar.show"
+        }
     ]
 }

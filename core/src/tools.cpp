@@ -3,6 +3,8 @@
 #include "recipes.h"
 
 #include <cstdlib>
+#include <ctime>
+#include <fstream>
 
 #include <algorithm>
 #include <chrono>
@@ -94,12 +96,20 @@ std::string queryKey(const std::string& query, bool dropKindWords) {
 Tools::Tools(Bus& bus, OpenApp openApp) : m_bus(bus), m_openApp(std::move(openApp)) {
     const char* h = std::getenv("HOME");
     homeDir = h ? h : "";
+    nowText = [] {
+        const std::time_t t = std::time(nullptr);
+        std::tm tm{};
+        localtime_r(&t, &tm);
+        char buf[64];
+        std::strftime(buf, sizeof buf, "%A %Y-%m-%d %H:%M", &tm);
+        return std::string("Now: ") + buf + " (local time)";
+    };
 }
 
 const std::vector<std::string>& Tools::names() {
     static const std::vector<std::string> n = {
         "list_installed", "list_available", "install", "open_app", "module_methods", "call", "status", "recipe",
-        "add_repository"};
+        "add_repository", "intent"};
     return n;
 }
 
@@ -224,6 +234,7 @@ bool Tools::loadPackages(std::map<std::string, Package>* out, std::string* error
             if (p.description.empty()) p.description = str(e, "description");
             if (p.displayName.empty()) p.displayName = str(e, "displayName");
             p.version = str(e, "version");
+            p.installDir = str(e, "installDir");
             // The installed manifest is what Basecamp will load.
             if (e.contains("dependencies")) p.dependencies = depNames(e["dependencies"]);
         }
@@ -316,6 +327,7 @@ Prepared Tools::prepare(const Json& step) {
     if (tool == "open_app") return prepareOpenApp(args);
     if (tool == "call") return prepareCall(args);
     if (tool == "recipe") return prepareRecipe(args);
+    if (tool == "intent") return prepareIntent(args);
 
     p.ok = true;
     p.step = {{"tool", tool}, {"args", args}};
@@ -437,6 +449,7 @@ CallResult Tools::run(const Json& step, const Progress& progress) {
     if (tool == "call") return runCall(args);
     if (tool == "status") return runStatus();
     if (tool == "recipe") return runRecipe(args, progress);
+    if (tool == "intent") return runIntent(args);
     return fail("Unknown tool \"" + tool + "\"");
 }
 
@@ -742,6 +755,7 @@ const std::set<std::string>& stopwords() {
 }
 
 const size_t kMaxMatches = 8;
+const size_t kMaxIntents = 12;
 const size_t kDescChars = 70;
 
 std::string commaJoin(const std::vector<std::string>& v) {
@@ -766,6 +780,7 @@ std::string Tools::context(const std::string& text) {
     std::map<std::string, Package> packages;
     std::string error;
     std::string out = "Context:\n";
+    if (nowText) out += nowText() + "\n";
     const bool havePackages = loadPackages(&packages, &error);
     if (!havePackages) out += "(The package list is unavailable: " + error + ")\n";
 
@@ -840,6 +855,30 @@ std::string Tools::context(const std::string& text) {
             for (const auto& n : r.notes) lines += "  Note: " + n + "\n";
         }
         if (!lines.empty()) out += "Recipes (they do what the app's own buttons do; use them when they fit):\n" + lines;
+    }
+    // What installed apps offer through Basecamp's intents, with their parameters.
+    // Many: only those of apps or intents named in what was said.
+    {
+        const auto all = havePackages ? intentsOf(packages) : std::vector<AppIntent>();
+        std::string lines;
+        for (const auto& a : all) {
+            if (all.size() > kMaxIntents) {
+                const std::string hay = normalize(a.app + " " + a.intent + " " + a.description);
+                bool said = false;
+                for (const auto& w : words) said = said || hay.find(w) != std::string::npos;
+                if (!said) continue;
+            }
+            std::string ps;
+            for (const auto& prm : a.params)
+                ps += (ps.empty() ? "" : "; ") + prm.name + (prm.required ? "" : "?") +
+                      (prm.type == "string" ? "" : " (" + prm.type + ")") +
+                      (prm.description.empty() ? "" : ": " + utf8Prefix(prm.description, 120));
+            lines += "- " + a.intent + " (" + a.app + (a.readOnly ? ", reads only" : "") + "): " +
+                     utf8Prefix(a.description, 140) + (ps.empty() ? "" : " Params: " + ps) + "\n";
+        }
+        if (!lines.empty())
+            out += "App intents (ask an app to do something; Basecamp asks the user and shows the app; "
+                   "? = optional):\n" + lines;
     }
     // Methods of the running modules, so the model calls only what exists.
     for (const auto& m : running) {
@@ -967,4 +1006,194 @@ CallResult Tools::runRecipe(const Json& args, const Progress& progress) {
         }
     }
     return done({{"recipe", a->id}, {"summary", a->title + ": done."}});
+}
+
+// ---- app intents (docs/adr/0009-app-intents.md) -----------------------------------
+
+namespace {
+
+// An installed app's metadata.json, as Basecamp's intent registry reads it.
+Json readMetadata(const std::string& installDir) {
+    if (installDir.empty()) return Json::object();
+    std::ifstream in(installDir + "/metadata.json");
+    if (!in) return Json::object();
+    std::stringstream ss;
+    ss << in.rdbuf();
+    Json j = Json::parse(ss.str(), nullptr, false);
+    return j.is_object() ? j : Json::object();
+}
+
+// One value as the user sees it in a plan or a result.
+std::string scalarText(const Json& v) {
+    if (v.is_string()) return v.get<std::string>();
+    if (v.is_boolean()) return v.get<bool>() ? "yes" : "no";
+    if (v.is_number()) return safeDump(v);
+    return {};
+}
+
+// {"title":"Dentist","start":"2026-10-06 15:00","end":"2026-10-06 16:00","calendar":"Team"}
+// -> "Dentist (2026-10-06 15:00–16:00, Team)": the name, then when, then the
+// other short values; a true flag by its name.
+std::string describeObject(const Json& o) {
+    std::string name, rest;
+    for (const char* k : {"title", "name", "label"})
+        if (name.empty() && o.contains(k)) name = scalarText(o[k]);
+    auto add = [&rest](const std::string& t) { if (!t.empty()) rest += (rest.empty() ? "" : ", ") + t; };
+    std::string when = o.contains("start") ? scalarText(o["start"]) : "";
+    const std::string until = o.contains("end") ? scalarText(o["end"]) : "";
+    if (!until.empty()) {
+        // Same day: the date once.
+        const size_t sp = when.find(' ');
+        when += (sp != std::string::npos && until.compare(0, sp + 1, when, 0, sp + 1) == 0) ? "–" + until.substr(sp + 1) : " – " + until;
+    }
+    add(when);
+    for (const auto& [k, v] : o.items()) {
+        if (k == "title" || k == "name" || k == "label" || k == "start" || k == "end") continue;
+        const std::string t = scalarText(v);
+        if (t.empty() || t.size() > 60) continue;
+        if (v.is_boolean()) { if (v.get<bool>()) add(k); }
+        else add(k == "calendar" || k == "location" ? t : k + " " + t);
+    }
+    if (name.empty()) return rest;
+    return rest.empty() ? name : name + " (" + rest + ")";
+}
+
+}  // namespace
+
+std::vector<AppIntent> Tools::intentsOf(const std::map<std::string, Package>& packages) const {
+    std::vector<AppIntent> out;
+    // Basecamp refuses a request this app did not declare: only those count.
+    std::set<std::string> uses;
+    auto self = packages.find(selfApp);
+    if (self == packages.end()) return out;
+    const Json mine = readMetadata(self->second.installDir);
+    if (mine.contains("uses") && mine["uses"].is_array())
+        for (const auto& u : mine["uses"])
+            if (u.is_object() && u.contains("intent") && u["intent"].is_string()) uses.insert(u["intent"].get<std::string>());
+
+    for (const auto& [name, p] : packages) {
+        if (!p.installed || p.type != "ui_qml" || name == selfApp) continue;
+        const Json meta = readMetadata(p.installDir);
+        if (!meta.contains("provides") || !meta["provides"].is_array()) continue;
+        for (const auto& e : meta["provides"]) {
+            const std::string intent = str(e, "intent");
+            if (intent.empty() || !uses.count(intent)) continue;
+            AppIntent a;
+            a.app = name;
+            a.intent = intent;
+            a.description = str(e, "description");
+            // Strict booleans, as Basecamp reads "handoff".
+            a.readOnly = e.contains("readOnly") && e["readOnly"].is_boolean() && e["readOnly"].get<bool>();
+            a.handoff = e.contains("handoff") && e["handoff"].is_boolean() && e["handoff"].get<bool>();
+            if (e.contains("params") && e["params"].is_array())
+                for (const auto& prm : e["params"]) {
+                    AppIntent::Param pa;
+                    pa.name = str(prm, "name");
+                    if (pa.name.empty()) continue;
+                    pa.type = str(prm, "type").empty() ? "string" : str(prm, "type");
+                    pa.description = str(prm, "description");
+                    pa.required = prm.contains("required") && prm["required"].is_boolean() && prm["required"].get<bool>();
+                    a.params.push_back(pa);
+                }
+            out.push_back(a);
+        }
+    }
+    return out;
+}
+
+std::vector<AppIntent> Tools::intents() {
+    std::map<std::string, Package> packages;
+    std::string error;
+    if (!loadPackages(&packages, &error)) return {};
+    return intentsOf(packages);
+}
+
+Prepared Tools::prepareIntent(const Json& args) {
+    Prepared p;
+    const std::string name = str(args, "intent");
+    const Json given = args.contains("params") && args["params"].is_object() ? args["params"] : Json::object();
+    const auto all = intents();
+    const AppIntent* a = nullptr;
+    for (const auto& x : all) if (x.intent == name) { a = &x; break; }
+    if (!a) { p.error = "No installed app offers \"" + name + "\"."; return p; }
+
+    // Only what the app describes, with the type it describes; an empty
+    // optional value is left out rather than sent as "".
+    Json params = Json::object();
+    std::string shown;
+    for (const auto& prm : a->params) {
+        if (!given.contains(prm.name) || given[prm.name].is_null() ||
+            (given[prm.name].is_string() && given[prm.name].get<std::string>().empty())) {
+            if (prm.required) { p.error = a->app + " needs " + prm.name + " for " + name + "."; return p; }
+            continue;
+        }
+        const Json& v = given[prm.name];
+        const bool typed = prm.type == "string" ? v.is_string()
+                         : prm.type == "number" ? v.is_number()
+                         : prm.type == "bool" ? v.is_boolean()
+                         : prm.type == "object" ? v.is_object()
+                         : prm.type == "array" ? v.is_array() : true;
+        if (!typed) { p.error = name + ": " + prm.name + " should be a " + prm.type + "."; return p; }
+        params[prm.name] = v;
+        shown += (shown.empty() ? "" : ", ") + prm.name + ": " + utf8Prefix(scalarText(v).empty() ? safeDump(v) : scalarText(v), 80);
+    }
+    p.ok = true;
+    // The app's word that it changes nothing; Basecamp still asks the user.
+    p.mutating = !a->readOnly;
+    p.step = {{"tool", "intent"}, {"args", {{"intent", name}, {"params", params}}}};
+    std::string what = a->description.empty() ? name : a->description;
+    if (!what.empty() && what.back() == '.') what.pop_back();
+    p.description = "Ask " + a->app + ": " + what + (shown.empty() ? "" : " (" + shown + ")");
+    return p;
+}
+
+CallResult Tools::runIntent(const Json& args) {
+    const std::string name = str(args, "intent");
+    const Json params = args.contains("params") && args["params"].is_object() ? args["params"] : Json::object();
+    std::string app = "the app";
+    bool handoff = false;
+    for (const auto& x : intents()) if (x.intent == name) { app = x.app; handoff = x.handoff; break; }
+    if (!raiseIntent) return fail("This Basecamp Voice cannot ask apps for things.");
+
+    CallResult r = raiseIntent(name, params);
+    if (!r.ok) return r;
+    const Json& env = r.value;
+    if (!(env.is_object() && env.value("ok", false))) {
+        // Basecamp's envelope carries a code, never the provider's reason.
+        const std::string code = env.is_object() ? env.value("error", std::string()) : std::string();
+        if (code == "cancelled") return fail("Cancelled in Basecamp's confirmation.");
+        if (code == "bad_request") return fail(app + " refused " + name + "; its window says why.");
+        if (code == "unavailable") return fail("Basecamp found no app for " + name + ", or did not let Basecamp Voice ask.");
+        if (code == "timeout") return fail(app + " did not answer " + name + ".");
+        if (code == "not_declared") return fail("Basecamp Voice does not declare " + name + " in its uses.");
+        return fail(app + " could not do " + name + (code.empty() || code == "failed" ? "." : " (" + code + ")."));
+    }
+    const Json data = env.contains("data") && env["data"].is_object() ? env["data"] : Json::object();
+
+    // A list in the answer (events, calendars): the same numbered list for the
+    // user and the model.
+    for (const auto& [key, v] : data.items()) {
+        if (!v.is_array()) continue;
+        Json items = Json::array();
+        for (const auto& e : v)
+            if (e.is_object()) {
+                std::string head;
+                for (const char* k : {"title", "name", "label"}) if (head.empty() && e.contains(k)) head = scalarText(e[k]);
+                Json rest = e;
+                for (const char* k : {"title", "name", "label"}) rest.erase(k);
+                items.push_back(item(head.empty() ? describeObject(e) : head, head.empty() ? "" : describeObject(rest)));
+            } else if (!scalarText(e).empty()) {
+                items.push_back(item(scalarText(e), ""));
+            }
+        if (items.empty()) return done({{"intent", name}, {"data", data}, {"summary", app + " has no " + key + " for that."}});
+        const bool more = data.value("more", false);
+        return listing({{"intent", name}, {"data", data}}, items,
+                       app + " listed " + std::to_string(items.size()) + (more ? "+" : "") + " " + key + ".",
+                       app + " " + key);
+    }
+    std::string summary;
+    for (const auto& [key, v] : data.items())
+        if (v.is_object()) { summary = app + ": " + key + " " + describeObject(v) + "."; break; }
+    if (summary.empty()) summary = handoff ? app + " is showing it." : app + " did it.";
+    return done({{"intent", name}, {"data", data}, {"summary", summary}});
 }

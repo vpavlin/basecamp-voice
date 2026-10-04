@@ -16,8 +16,9 @@ Three ways to press an app's Start button were considered (2026-10-04):
 
 The proper long-term fix is **app intents**: apps declare actions such as
 `blockchain.node.start` in `provides`, and Basecamp Voice raises them through
-the shell, the same way it raises `basecamp.apps.launch`. That needs the app
-authors to add them; it is worth proposing upstream.
+the shell. *Update:* Basecamp 0.3.1 already supports this, and Basecamp Voice
+uses it (ADR 0009). Scala, the calendar, is the first app that provides intents.
+An app that does needs no recipe; recipes remain for apps that do not.
 
 ## What a recipe is
 

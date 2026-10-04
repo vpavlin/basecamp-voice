@@ -761,5 +761,137 @@
     }
    ]
   ]
+ },
+ {
+  "say": "add dentist on tuesday at 3",
+  "tag": "scala",
+  "installed": [
+   "scala_ui",
+   "scala"
+  ],
+  "want": [
+   {
+    "tool": "intent",
+    "args": {
+     "intent": "scala.event.create",
+     "params": {
+      "title": "Dentist",
+      "start": "2026-10-06T15:00"
+     }
+    }
+   }
+  ]
+ },
+ {
+  "say": "put lunch with Petra in my calendar tomorrow at noon",
+  "tag": "scala",
+  "installed": [
+   "scala_ui",
+   "scala"
+  ],
+  "want": [
+   {
+    "tool": "intent",
+    "args": {
+     "intent": "scala.event.create",
+     "params": {
+      "start": "2026-10-05T12:00"
+     }
+    }
+   }
+  ]
+ },
+ {
+  "say": "what's on my calendar tomorrow",
+  "tag": "scala",
+  "installed": [
+   "scala_ui",
+   "scala"
+  ],
+  "want": [
+   {
+    "tool": "intent",
+    "args": {
+     "intent": "scala.events.list",
+     "params": {
+      "from": "2026-10-05"
+     }
+    }
+   }
+  ]
+ },
+ {
+  "say": "when is the dentist",
+  "tag": "scala",
+  "installed": [
+   "scala_ui",
+   "scala"
+  ],
+  "want": [
+   {
+    "tool": "intent",
+    "args": {
+     "intent": "scala.events.search",
+     "params": {
+      "query": "dentist"
+     }
+    }
+   }
+  ]
+ },
+ {
+  "say": "create a calendar called Family",
+  "tag": "scala",
+  "installed": [
+   "scala_ui",
+   "scala"
+  ],
+  "want": [
+   {
+    "tool": "intent",
+    "args": {
+     "intent": "scala.calendar.create",
+     "params": {
+      "name": "Family"
+     }
+    }
+   }
+  ]
+ },
+ {
+  "say": "which calendars do I have",
+  "tag": "scala",
+  "installed": [
+   "scala_ui",
+   "scala"
+  ],
+  "want": [
+   {
+    "tool": "intent",
+    "args": {
+     "intent": "scala.calendars.list",
+     "params": {}
+    }
+   }
+  ]
+ },
+ {
+  "say": "co mám v kalendáři zítra",
+  "tag": "scala",
+  "installed": [
+   "scala_ui",
+   "scala"
+  ],
+  "want": [
+   {
+    "tool": "intent",
+    "args": {
+     "intent": "scala.events.list",
+     "params": {
+      "from": "2026-10-05"
+     }
+    }
+   }
+  ]
  }
 ]

@@ -57,6 +57,9 @@ public:
 
     // How long open_app waits for the view to act and answer.
     int viewWaitMs = 20000;
+    // How long an app intent may take: the user answers Basecamp's dialog,
+    // the app loads and does it (Basecamp's own backstop is 10 minutes).
+    int intentWaitMs = 11 * 60 * 1000;
     Tools& tools() { return *m_tools; }
 
 private:
@@ -98,6 +101,9 @@ private:
     void failJob(const std::string& jobId, const std::string& why);
     void runJob(const std::string& jobId);
     CallResult openAppThroughView(const std::string& app);
+    // Asks the view to raise an intent (logos.request) and waits for Basecamp's
+    // envelope {ok, data, error}. Fails only when no answer came.
+    CallResult requestThroughView(const std::string& intent, const Json& params, int waitMs, std::string* error);
 
     // Callers hold m_mu.
     void record(Json event);
