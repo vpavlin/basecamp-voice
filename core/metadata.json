@@ -1,0 +1,26 @@
+{
+    "name": "basecamp_voice_core",
+    "display_name": "Basecamp Voice Core",
+    "version": "0.2.0",
+    "description": "Plans and runs spoken Basecamp commands: install packages, open apps, call modules",
+    "author": "vpavlin",
+    "type": "core",
+    "interface": "universal",
+    "category": "tools",
+    "main": "basecamp_voice_core_plugin",
+    "dependencies": [],
+    "nix": {
+        "packages": {
+            "build": [],
+            "runtime": [
+                "curl",
+                "openssl"
+            ]
+        },
+        "external_libraries": [
+            {
+                "name": "voicestt"
+            }
+        ]
+    }
+}

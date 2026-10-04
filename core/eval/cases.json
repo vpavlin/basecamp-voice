@@ -1,0 +1,765 @@
+[
+ {
+  "say": "open the eth rpc app",
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "eth_rpc_ui"
+    }
+   }
+  ]
+ },
+ {
+  "say": "install and run the blockchain module",
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "blockchain_ui"
+    }
+   }
+  ]
+ },
+ {
+  "say": "start the blockchain node",
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "blockchain_ui"
+    }
+   }
+  ]
+ },
+ {
+  "say": "install the token list module",
+  "want": [
+   {
+    "tool": "install",
+    "args": {
+     "name": "token_list_module"
+    }
+   }
+  ]
+ },
+ {
+  "say": "I want to chat",
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "chat_ui"
+    }
+   }
+  ]
+ },
+ {
+  "say": "open the wallet",
+  "want": []
+ },
+ {
+  "say": "what wallets are there?",
+  "want": [
+   {
+    "tool": "list_available"
+   }
+  ]
+ },
+ {
+  "say": "what's running right now",
+  "installed": [
+   "eth_rpc_ui",
+   "eth_rpc_module"
+  ],
+  "running": [
+   "eth_rpc_module"
+  ],
+  "want": [
+   {
+    "tool": "status"
+   }
+  ]
+ },
+ {
+  "say": "what do I have installed",
+  "want": [
+   {
+    "tool": "list_installed"
+   }
+  ],
+  "installed": [
+   "eth_rpc_ui",
+   "eth_rpc_module"
+  ],
+  "want_any": [
+   [
+    {
+     "tool": "list_installed"
+    }
+   ],
+   []
+  ]
+ },
+ {
+  "say": "list the chains in eth rpc",
+  "installed": [
+   "eth_rpc_ui",
+   "eth_rpc_module"
+  ],
+  "running": [
+   "eth_rpc_module"
+  ],
+  "methods": {
+   "eth_rpc_module": [
+    "set_chain_config(chain_id: int, config_json: QString)",
+    "get_chain_config(chain_id: int)",
+    "remove_chain_config(chain_id: int)",
+    "list_chains()",
+    "list_chain_configs()"
+   ]
+  },
+  "want": [
+   {
+    "tool": "call",
+    "args": {
+     "module": "eth_rpc_module",
+     "method": "list_chains",
+     "args": []
+    }
+   }
+  ]
+ },
+ {
+  "say": "show me the configuration of chain 1",
+  "installed": [
+   "eth_rpc_ui",
+   "eth_rpc_module"
+  ],
+  "running": [
+   "eth_rpc_module"
+  ],
+  "methods": {
+   "eth_rpc_module": [
+    "set_chain_config(chain_id: int, config_json: QString)",
+    "get_chain_config(chain_id: int)",
+    "remove_chain_config(chain_id: int)",
+    "list_chains()",
+    "list_chain_configs()"
+   ]
+  },
+  "want": [
+   {
+    "tool": "call",
+    "args": {
+     "module": "eth_rpc_module",
+     "method": "get_chain_config",
+     "args": [
+      1
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "say": "open storage",
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "storage_ui"
+    }
+   }
+  ]
+ },
+ {
+  "say": "install monero",
+  "want": [],
+  "note": "several monero packages: ask which"
+ },
+ {
+  "say": "order me a pizza",
+  "want": []
+ },
+ {
+  "say": "otevři aplikaci eth rpc",
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "eth_rpc_ui"
+    }
+   }
+  ]
+ },
+ {
+  "say": "uh can you like open the uh uniswap thing",
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "uniswap_ui"
+    }
+   }
+  ]
+ },
+ {
+  "say": "open token list then show me the chains in eth rpc",
+  "installed": [
+   "eth_rpc_ui",
+   "eth_rpc_module"
+  ],
+  "running": [
+   "eth_rpc_module"
+  ],
+  "methods": {
+   "eth_rpc_module": [
+    "list_chains()",
+    "get_chain_config(chain_id: int)"
+   ]
+  },
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "token_list_ui"
+    }
+   },
+   {
+    "tool": "call",
+    "args": {
+     "module": "eth_rpc_module",
+     "method": "list_chains"
+    }
+   }
+  ]
+ },
+ {
+  "say": "otevři peněženku",
+  "want": []
+ },
+ {
+  "say": "nainstaluj a spusť blockchain",
+  "want_any": [
+   [
+    {
+     "tool": "open_app",
+     "args": {
+      "app": "blockchain_ui"
+     }
+    }
+   ]
+  ]
+ },
+ {
+  "say": "co mám nainstalované?",
+  "installed": [
+   "eth_rpc_ui",
+   "eth_rpc_module"
+  ],
+  "want_any": [
+   [
+    {
+     "tool": "list_installed"
+    }
+   ],
+   []
+  ]
+ },
+ {
+  "say": "spusť uniswap",
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "uniswap_ui"
+    }
+   }
+  ]
+ },
+ {
+  "say": "zobraz mi řetězce v eth rpc",
+  "installed": [
+   "eth_rpc_ui",
+   "eth_rpc_module"
+  ],
+  "running": [
+   "eth_rpc_module"
+  ],
+  "methods": {
+   "eth_rpc_module": [
+    "set_chain_config(chain_id: int, config_json: QString)",
+    "get_chain_config(chain_id: int)",
+    "remove_chain_config(chain_id: int)",
+    "list_chains()",
+    "list_chain_configs()"
+   ]
+  },
+  "want": [
+   {
+    "tool": "call",
+    "args": {
+     "module": "eth_rpc_module",
+     "method": "list_chains"
+    }
+   }
+  ]
+ },
+ {
+  "say": "öffne die Speicher-App",
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "storage_ui"
+    }
+   }
+  ]
+ },
+ {
+  "say": "abre el monedero de monero",
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "monero_wallet_ui"
+    }
+   }
+  ]
+ },
+ {
+  "say": "stop the blockchain node",
+  "want": []
+ },
+ {
+  "say": "what can the eth rpc module do?",
+  "installed": [
+   "eth_rpc_ui",
+   "eth_rpc_module"
+  ],
+  "running": [
+   "eth_rpc_module"
+  ],
+  "methods": {
+   "eth_rpc_module": [
+    "set_chain_config(chain_id: int, config_json: QString)",
+    "get_chain_config(chain_id: int)",
+    "remove_chain_config(chain_id: int)",
+    "list_chains()",
+    "list_chain_configs()"
+   ]
+  },
+  "want_any": [
+   [
+    {
+     "tool": "module_methods",
+     "args": {
+      "module": "eth_rpc_module"
+     }
+    }
+   ],
+   []
+  ]
+ },
+ {
+  "say": "configure chain 10 with the rpc url https://mainnet.optimism.io",
+  "installed": [
+   "eth_rpc_ui",
+   "eth_rpc_module"
+  ],
+  "running": [
+   "eth_rpc_module"
+  ],
+  "methods": {
+   "eth_rpc_module": [
+    "set_chain_config(chain_id: int, config_json: QString)",
+    "get_chain_config(chain_id: int)",
+    "remove_chain_config(chain_id: int)",
+    "list_chains()",
+    "list_chain_configs()"
+   ]
+  },
+  "want": [
+   {
+    "tool": "call",
+    "args": {
+     "module": "eth_rpc_module",
+     "method": "set_chain_config"
+    }
+   }
+  ]
+ },
+ {
+  "say": "get me set up for chatting",
+  "want_any": [
+   [
+    {
+     "tool": "open_app",
+     "args": {
+      "app": "chat_ui"
+     }
+    }
+   ],
+   [
+    {
+     "tool": "install",
+     "args": {
+      "name": "chat_ui"
+     }
+    }
+   ]
+  ]
+ },
+ {
+  "say": "can you actually start the blockchain node in the application?",
+  "installed": [
+   "blockchain_ui",
+   "blockchain_module"
+  ],
+  "want": [
+   {
+    "tool": "recipe",
+    "args": {
+     "app": "blockchain_ui",
+     "action": "start_node"
+    }
+   }
+  ],
+  "facts": {
+   "blockchain_ui": [
+    "config_path"
+   ]
+  }
+ },
+ {
+  "say": "can you actually start the blockchain node in the application?",
+  "installed": [
+   "blockchain_ui",
+   "blockchain_module"
+  ],
+  "running": [
+   "blockchain_module"
+  ],
+  "methods": {
+   "blockchain_module": [
+    "start(config_path: tstr, deployment: tstr)",
+    "stop()",
+    "generate_user_config(json_args: tstr)",
+    "generate_key(user_config_path: tstr, keystore_path: tstr, key_type: tstr, key_title: tstr)",
+    "get_peer_id(config_path: tstr)",
+    "get_chain_id()",
+    "get_network_info()",
+    "get_cryptarchia_info()"
+   ]
+  },
+  "done": [
+   {
+    "step": "Open blockchain_ui",
+    "result": "Opened blockchain_ui. blockchain_module is running."
+   }
+  ],
+  "want": [],
+  "note": "needs config path + deployment: ask"
+ },
+ {
+  "say": "list the chains in eth rpc",
+  "installed": [
+   "eth_rpc_ui",
+   "eth_rpc_module"
+  ],
+  "want": [
+   {
+    "tool": "open_app",
+    "args": {
+     "app": "eth_rpc_ui"
+    }
+   }
+  ]
+ },
+ {
+  "say": "list the chains in eth rpc",
+  "installed": [
+   "eth_rpc_ui",
+   "eth_rpc_module"
+  ],
+  "running": [
+   "eth_rpc_module"
+  ],
+  "methods": {
+   "eth_rpc_module": [
+    "set_chain_config(chain_id: int, config_json: QString)",
+    "get_chain_config(chain_id: int)",
+    "remove_chain_config(chain_id: int)",
+    "list_chains()",
+    "list_chain_configs()"
+   ]
+  },
+  "done": [
+   {
+    "step": "Open eth_rpc_ui",
+    "result": "Opened eth_rpc_ui. eth_rpc_module is running."
+   }
+  ],
+  "want": [
+   {
+    "tool": "call",
+    "args": {
+     "module": "eth_rpc_module",
+     "method": "list_chains"
+    }
+   }
+  ]
+ },
+ {
+  "say": "Okay, I would like you to check whether we have Logos blockchain application installed, and if yes, then inspect the methods and start the node.",
+  "installed": [
+   "blockchain_ui",
+   "blockchain_module"
+  ],
+  "want": [
+   {
+    "tool": "recipe",
+    "args": {
+     "app": "blockchain_ui",
+     "action": "start_node"
+    }
+   }
+  ],
+  "facts": {
+   "blockchain_ui": [
+    "config_path"
+   ]
+  }
+ },
+ {
+  "say": "Okay, I would like you to check whether we have Logos blockchain application installed, and if yes, then inspect the methods and start the node.",
+  "installed": [],
+  "want_any": [
+   [
+    {
+     "tool": "open_app",
+     "args": {
+      "app": "blockchain_ui"
+     }
+    }
+   ],
+   []
+  ]
+ },
+ {
+  "say": "start the blockchain node",
+  "installed": [
+   "blockchain_ui",
+   "blockchain_module"
+  ],
+  "facts": {
+   "blockchain_ui": [
+    "config_path"
+   ]
+  },
+  "want": [
+   {
+    "tool": "recipe",
+    "args": {
+     "app": "blockchain_ui",
+     "action": "start_node"
+    }
+   }
+  ]
+ },
+ {
+  "say": "start the blockchain node",
+  "installed": [
+   "blockchain_ui",
+   "blockchain_module"
+  ],
+  "note": "not set up: tell the user to use the app's setup",
+  "want_any": [
+   [
+    {
+     "tool": "open_app",
+     "args": {
+      "app": "blockchain_ui"
+     }
+    }
+   ],
+   []
+  ]
+ },
+ {
+  "say": "stop the storage node",
+  "installed": [
+   "storage_ui",
+   "storage_module"
+  ],
+  "running": [
+   "storage_module"
+  ],
+  "want": [
+   {
+    "tool": "recipe",
+    "args": {
+     "app": "storage_ui",
+     "action": "stop_node"
+    }
+   }
+  ]
+ },
+ {
+  "say": "spusť blockchain node",
+  "installed": [
+   "blockchain_ui",
+   "blockchain_module"
+  ],
+  "facts": {
+   "blockchain_ui": [
+    "config_path"
+   ]
+  },
+  "want": [
+   {
+    "tool": "recipe",
+    "args": {
+     "app": "blockchain_ui",
+     "action": "start_node"
+    }
+   }
+  ]
+ },
+ {
+  "say": "Add this repository: https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json and show me a list of all apps in it",
+  "want": [
+   {
+    "tool": "add_repository",
+    "args": {
+     "url": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json"
+    }
+   },
+   {
+    "tool": "list_available",
+    "args": {
+     "repository": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json"
+    }
+   }
+  ]
+ },
+ {
+  "say": "install the second one",
+  "history": [
+   {
+    "said": "Add this repository: https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json and show me the apps in it",
+    "result": "Added the repository https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json. https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has 4 packages.",
+    "lists": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
+   }
+  ],
+  "tag": "convo",
+  "want_any": [
+   [
+    {
+     "tool": "install",
+     "args": {
+      "name": "qaku"
+     }
+    }
+   ],
+   [
+    {
+     "tool": "open_app",
+     "args": {
+      "app": "qaku"
+     }
+    }
+   ]
+  ]
+ },
+ {
+  "say": "open scala",
+  "history": [
+   {
+    "said": "Add this repository: https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json and show me the apps in it",
+    "result": "Added the repository https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json. https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has 4 packages.",
+    "lists": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
+   }
+  ],
+  "tag": "convo",
+  "want_any": [
+   [
+    {
+     "tool": "open_app",
+     "args": {
+      "app": "scala_ui"
+     }
+    }
+   ]
+  ]
+ },
+ {
+  "say": "install it and open it",
+  "tag": "convo",
+  "history": [
+   {
+    "said": "Add this repository: https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json and show me the apps in it",
+    "result": "Added the repository https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json. https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has 4 packages.",
+    "lists": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
+   },
+   {
+    "said": "what is kym?",
+    "result": "kym is a household budget app.",
+    "lists": ""
+   }
+  ],
+  "want_any": [
+   [
+    {
+     "tool": "open_app",
+     "args": {
+      "app": "kym"
+     }
+    }
+   ],
+   [
+    {
+     "tool": "install",
+     "args": {
+      "name": "kym"
+     }
+    },
+    {
+     "tool": "open_app",
+     "args": {
+      "app": "kym"
+     }
+    }
+   ]
+  ]
+ },
+ {
+  "say": "nainstaluj tu třetí",
+  "history": [
+   {
+    "said": "Add this repository: https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json and show me the apps in it",
+    "result": "Added the repository https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json. https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has 4 packages.",
+    "lists": "https://jimmy-crib.office.mesh:8444/basecamp-0.3/logos-repo.json has: 1. kym (app), 2. qaku (app), 3. scala_ui (app), 4. kym_core (module)."
+   }
+  ],
+  "tag": "convo",
+  "want_any": [
+   [
+    {
+     "tool": "install",
+     "args": {
+      "name": "scala_ui"
+     }
+    }
+   ],
+   [
+    {
+     "tool": "open_app",
+     "args": {
+      "app": "scala_ui"
+     }
+    }
+   ]
+  ]
+ }
+]
