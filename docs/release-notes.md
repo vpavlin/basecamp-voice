@@ -3,6 +3,12 @@ your computer plans it, you confirm, and it runs.
 
 **Requires:** Logos Basecamp v0.3.1.
 
+## New in 0.3.0
+
+- **Ask apps directly.** Apps that provide Basecamp intents can be spoken to: "add dentist on Tuesday at 3" or
+  "what's on my calendar tomorrow" goes to [Scala](https://github.com/vpavlin/scala) (scala_ui 0.10.0 or newer).
+  Basecamp asks you to confirm each request.
+
 ## Packages
 
 Each package covers Linux x86_64, Linux ARM64 and macOS Apple Silicon.
