@@ -51,3 +51,21 @@ logos_module(
         CURL::libcurl
         OpenSSL::Crypto
 )
+
+# macOS: the microphone is recorded by a separate small app (docs/macos.md).
+# Its binary is embedded in the core and written out at first use.
+if(APPLE)
+    enable_language(OBJC)
+    add_executable(voice_recorder macos/voice_recorder.m)
+    target_compile_options(voice_recorder PRIVATE -fobjc-arc)
+    target_link_libraries(voice_recorder PRIVATE "-framework Foundation" "-framework AVFoundation")
+    set(RECORDER_BLOB ${CMAKE_CURRENT_BINARY_DIR}/generated_recorder/recorder_blob.h)
+    add_custom_command(OUTPUT ${RECORDER_BLOB}
+        COMMAND ${CMAKE_COMMAND} -DIN=$<TARGET_FILE:voice_recorder> -DOUT=${RECORDER_BLOB}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/macos/embed.cmake
+        DEPENDS voice_recorder ${CMAKE_CURRENT_SOURCE_DIR}/macos/embed.cmake)
+    add_custom_target(recorder_blob DEPENDS ${RECORDER_BLOB})
+    add_dependencies(basecamp_voice_core_module_plugin recorder_blob)
+    target_include_directories(basecamp_voice_core_module_plugin PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated_recorder)
+    target_compile_definitions(basecamp_voice_core_module_plugin PRIVATE BASECAMP_VOICE_MAC_RECORDER=1)
+endif()

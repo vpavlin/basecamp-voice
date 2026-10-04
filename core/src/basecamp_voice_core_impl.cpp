@@ -28,6 +28,15 @@ using Json = nlohmann::json;
 namespace {
 const char* kVersion = "0.2.0";
 
+// Where the model runs unless the user chooses: the CPU on Linux (an iGPU
+// shared with the desktop was barely faster and reset twice; ADR 0007), the
+// GPU on macOS (Metal on Apple Silicon is fast and dependable).
+#if defined(__APPLE__)
+const char* kDefaultDevice = "gpu";
+#else
+const char* kDefaultDevice = "cpu";
+#endif
+
 std::string failJson(const std::string& error) { return safeDump(Json{{"ok", false}, {"error", error}}); }
 
 void mkdirs(const std::string& path) {
@@ -86,21 +95,22 @@ public:
     Transcriber transcriber;
 
     std::mutex mu;
-    Json settings = {{"endpoint", ""}, {"model", ""}, {"apiKey", ""}, {"localModel", "qwen3-4b"}, {"device", "cpu"}};
+    Json settings = {{"endpoint", ""}, {"model", ""}, {"apiKey", ""}, {"localModel", "qwen3-4b"}, {"device", kDefaultDevice}};
 
     // The runtime is the Vulkan build: libggml-vulkan.so sits beside the
     // program (the unpacked folder name does not say).
     bool gpuBuild() {
         if (!assets || !assets->have("runtime")) return false;
-        const std::string program = assets->path("runtime");
-        return ::access((program.substr(0, program.rfind('/')) + "/libggml-vulkan.so").c_str(), F_OK) == 0;
+        const std::string dir = assets->path("runtime").substr(0, assets->path("runtime").rfind('/'));
+        return ::access((dir + "/libggml-vulkan.so").c_str(), F_OK) == 0 ||
+               ::access((dir + "/libggml-metal.dylib").c_str(), F_OK) == 0;
     }
 
     // "cpu" (the default: steadier; an iGPU shared with the rest of the desktop
     // was barely faster and reset twice in testing) or "gpu".
     bool allowGpu() {
         std::lock_guard<std::mutex> lk(mu);
-        return settings.value("device", std::string("cpu")) == "gpu";
+        return settings.value("device", std::string(kDefaultDevice)) == "gpu";
     }
     std::string voiceState = "idle";     // idle | recording | transcribing
     std::string voiceError;
@@ -268,6 +278,12 @@ public:
             if (voiceState != "recording") return failJson("Not listening.");
         }
         const std::string wav = recorder.stop();
+        if (!recorder.lastError().empty()) {
+            std::lock_guard<std::mutex> lk(mu);
+            voiceState = "idle";
+            voiceError = recorder.lastError();
+            return failJson(voiceError);
+        }
         return transcribeAndSubmit(wav, true);
     }
 

@@ -1,5 +1,9 @@
 #include "recipes.h"
 
+#include <unistd.h>
+
+#include "proc.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
@@ -197,12 +201,41 @@ std::string iniValue(const std::string& path, const std::string& key) {
     return {};
 }
 
+// Qt's settings on macOS live in ~/Library/Preferences/com.<org>.<App>.plist,
+// read with Apple's `defaults` (QSettings("Logos", "BlockchainUI") -> com.logos.BlockchainUI).
+static std::string macSetting(const std::string& file, const std::string& key) {
+#if defined(__APPLE__)
+    const size_t slash = file.find('/');
+    std::string org = file.substr(0, slash), app = file.substr(slash + 1);
+    for (auto& c : org) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    char tmpl[] = "/tmp/basecamp-voice-setting-XXXXXX";
+    const int fd = ::mkstemp(tmpl);
+    if (fd < 0) return {};
+    ::close(fd);
+    std::string err;
+    std::string value;
+    if (proc::run({"/usr/bin/defaults", "read", "com." + org + "." + app, key}, tmpl, 5000, &err) == 0) {
+        std::ifstream in(tmpl);
+        std::getline(in, value);
+    }
+    ::unlink(tmpl);
+    return trim(value);
+#else
+    (void)file; (void)key;
+    return {};
+#endif
+}
+
 std::map<std::string, std::string> resolveFacts(const Recipe& r, const std::string& home) {
     std::map<std::string, std::string> out;
     for (const auto& f : r.facts) {
-        // Only Logos settings: ~/.config/Logos/<App>.conf, nothing else.
+        // Only Logos settings: ~/.config/Logos/<App>.conf (or its macOS plist), nothing else.
         if (!startsWith(f.file, "Logos/") || f.file.find("..") != std::string::npos) continue;
+#if defined(__APPLE__)
+        const std::string v = macSetting(f.file, f.key);
+#else
         const std::string v = iniValue(home + "/.config/" + f.file + ".conf", f.key);
+#endif
         if (f.mustExist) {
             struct stat st;
             if (v.empty() || ::stat(v.c_str(), &st) != 0) continue;

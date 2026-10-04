@@ -45,7 +45,7 @@ jobs:
       - name: Core package
         run: nix build -L ./core#lgx-portable --override-input stt "path:$PWD/nix/stt" -o core-lgx
       - name: View package
-        run: nix build -L ./view#lgx-portable --override-input basecamp_voice_core "path:$PWD/core" -o view-lgx
+        run: nix build -L ./view#lgx-portable --override-input basecamp_voice_core "path:$PWD/core" --override-input basecamp_voice_core/stt "path:$PWD/nix/stt" -o view-lgx
       - name: Collect
         run: |
           mkdir -p out

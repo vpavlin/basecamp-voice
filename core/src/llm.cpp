@@ -111,8 +111,10 @@ bool LlamaServer::start(const std::string& program, const std::string& model, bo
 bool LlamaServer::ensure(const std::string& program, const std::string& model, std::string* baseUrl,
                          std::string* error, const std::function<bool()>& stopping, bool allowGpu) {
     // The Vulkan build also runs on the CPU; use the GPU unless it failed before.
-    const bool vulkanBuild = program.find("vulkan") != std::string::npos ||
-        ::access((program.substr(0, program.rfind('/')) + "/libggml-vulkan.so").c_str(), F_OK) == 0;
+    // A GPU build: Vulkan (Linux) or Metal (macOS) beside the program.
+    const std::string dir = program.substr(0, program.rfind('/'));
+    const bool vulkanBuild = ::access((dir + "/libggml-vulkan.so").c_str(), F_OK) == 0 ||
+                             ::access((dir + "/libggml-metal.dylib").c_str(), F_OK) == 0;
     auto giveUp = [&] { return m_interrupted.load() || (stopping && stopping()); };
     std::lock_guard<std::mutex> lk(m_mu);
     for (int attempt = 0; attempt < 2; ++attempt) {

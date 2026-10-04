@@ -16,11 +16,16 @@ public:
     std::string stop();
     void cancel();
     bool active() const;
+    // Why the last recording produced no file (macOS helper), or "".
+    std::string lastError() const;
 
 private:
     mutable std::mutex m_mu;
     pid_t m_pid = -1;
     std::string m_path;
+    // macOS: the helper app is not our child; it is driven through files.
+    bool m_helper = false;
+    std::string m_error;
 };
 
 struct parakeet_context;
