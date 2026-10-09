@@ -150,12 +150,17 @@ def context(text, catalog, installed, running, methods, facts=None, intents=()):
                        (": " + p["description"][:120] if p.get("description") else "") for p in a["params"])
         int_lines.append(f'- {a["intent"]} ({a["app"]}{", reads only" if a["readOnly"] else ""}): {a["description"][:140]}' +
                          (" Params: " + ps if ps else ""))
+    via_intents = {d for a in intents for d in catalog.get(a["app"], {}).get("deps", [])}
+    said = lambda name: any(w in norm(name) for w in words)
+    for m in run:
+        about = said(m) or any(said(an) and m in ap.get("deps", []) for an, ap in catalog.items()
+                               if an in installed and ap.get("type") == "ui_qml")
+        if m in via_intents or not about: continue
+        if m in methods:
+            lines.append(f"Methods of {m}: " + ", ".join(methods[m]))
     if int_lines:
         lines.append("App intents (ask an app to do something; Basecamp asks the user and shows the app; ? = optional):")
         lines += int_lines
-    for m in run:
-        if m in methods:
-            lines.append(f"Methods of {m}: " + ", ".join(methods[m]))
     return "Context:\n" + "\n".join(lines) + f'\n\nUser: "{text}"'
 
 def history_text(history):

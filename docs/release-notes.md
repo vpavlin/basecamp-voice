@@ -3,6 +3,11 @@ your computer plans it, you confirm, and it runs.
 
 **Requires:** Logos Basecamp v0.3.1.
 
+## New in 0.3.2
+
+- **Smaller, faster prompts.** Only the methods of modules the request names (or of an app it names) are listed, and app intents come last, next to the request. With many modules running, the model used to read 5,000+ tokens per request and lose track of the intents.
+- **The intents report** also appears when Basecamp's package list is not ready yet at startup.
+
 ## New in 0.3.1
 
 - **Shows what it found:** the line under the input now says which apps' intents Basecamp Voice found, or why it found none. The details are in `intents-report.json` in its data folder.

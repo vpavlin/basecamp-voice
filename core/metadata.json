@@ -1,7 +1,7 @@
 {
     "name": "basecamp_voice_core",
     "display_name": "Basecamp Voice Core",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "description": "Plans and runs spoken Basecamp commands: install packages, open apps, call modules",
     "author": "vpavlin",
     "type": "core",

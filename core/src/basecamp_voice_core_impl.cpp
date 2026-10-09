@@ -403,7 +403,14 @@ void BasecampVoiceCoreImpl::onContextReady() {
     m_voice->ready(dir);
     // One look for app intents now, so the window says what it found before
     // the first request (later looks happen with every plan).
-    m_engine->post([this] { m_engine->tools().intents(); });
+    // Basecamp's package services may not answer yet: try for a while.
+    m_engine->post([this] {
+        for (int i = 0; i < 10; ++i) {
+            m_engine->tools().intents();
+            if (!m_engine->tools().packagesUnavailable || m_voice->stopping.load()) break;
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+        }
+    });
 }
 
 LogosShutdown BasecampVoiceCoreImpl::aboutToUnload() {

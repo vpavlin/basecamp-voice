@@ -115,7 +115,10 @@ LOGOS_TEST(context_lists_what_matters_and_leaves_out_noise) {
     const std::string c = t.context("please open the token list app");
     LOGOS_ASSERT_CONTAINS(c, std::string("Installed apps: eth_rpc_ui (needs eth_rpc_module)"));
     LOGOS_ASSERT_CONTAINS(c, std::string("Running modules: eth_rpc_module\n"));
-    LOGOS_ASSERT_CONTAINS(c, std::string("Methods of eth_rpc_module: list_chains(), get_chain_config(chain_id: int)"));
+    // Methods only of the modules the request is about.
+    LOGOS_ASSERT_TRUE(c.find("Methods of eth_rpc_module") == std::string::npos);
+    LOGOS_ASSERT_CONTAINS(t.context("list the chains in eth rpc"),
+                          std::string("Methods of eth_rpc_module: list_chains(), get_chain_config(chain_id: int)"));
     LOGOS_ASSERT_CONTAINS(c, std::string("- token_list_ui (app) needs token_list_module"));
     LOGOS_ASSERT_CONTAINS(c, std::string("User: \"please open the token list app\""));
     // Basecamp's own modules are not the user's business; filler words match nothing.

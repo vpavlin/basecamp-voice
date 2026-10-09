@@ -859,9 +859,10 @@ std::string Tools::context(const std::string& text) {
     }
     // What installed apps offer through Basecamp's intents, with their parameters.
     // Many: only those of apps or intents named in what was said.
+    const auto all = havePackages ? intentsOf(packages) : std::vector<AppIntent>();
+    std::string intentLines;
     {
-        const auto all = havePackages ? intentsOf(packages) : std::vector<AppIntent>();
-        std::string lines;
+        std::string& lines = intentLines;
         for (const auto& a : all) {
             if (all.size() > kMaxIntents) {
                 const std::string hay = normalize(a.app + " " + a.intent + " " + a.description);
@@ -877,12 +878,30 @@ std::string Tools::context(const std::string& text) {
             lines += "- " + a.intent + " (" + a.app + (a.readOnly ? ", reads only" : "") + "): " +
                      utf8Prefix(a.description, 140) + (ps.empty() ? "" : " Params: " + ps) + "\n";
         }
-        if (!lines.empty())
-            out += "App intents (ask an app to do something; Basecamp asks the user and shows the app; "
-                   "? = optional):\n" + lines;
     }
-    // Methods of the running modules, so the model calls only what exists.
+    // Methods of the running modules the request is about (named, or the cores
+    // of an app it names), so the model calls only what exists. Not all of
+    // them: twenty modules' methods buried everything else and took minutes
+    // to read. Not the cores of apps that provide intents: those are the way in.
+    std::set<std::string> viaIntents;
+    for (const auto& a : all)
+        if (packages.count(a.app))
+            for (const auto& d : packages[a.app].dependencies) viaIntents.insert(d);
+    auto said = [&words](const std::string& name) {
+        const std::string n = normalize(name);
+        for (const auto& w : words) if (n.find(w) != std::string::npos) return true;
+        return false;
+    };
     for (const auto& m : running) {
+        if (viaIntents.count(m)) continue;
+        bool about = said(m);
+        for (const auto& [an, ap] : packages) {
+            if (about) break;
+            if (ap.installed && ap.type == "ui_qml" && said(an + " " + ap.displayName) &&
+                std::find(ap.dependencies.begin(), ap.dependencies.end(), m) != ap.dependencies.end())
+                about = true;
+        }
+        if (!about) continue;
         CallResult r = methodsOf(m, false);
         if (!r.ok || !r.value.is_array()) continue;
         std::vector<std::string> sigs;
@@ -894,6 +913,10 @@ std::string Tools::context(const std::string& text) {
         }
         if (!sigs.empty()) out += "Methods of " + m + ": " + commaJoin(sigs) + "\n";
     }
+    // Last, next to the request: what installed apps offer through intents.
+    if (!intentLines.empty())
+        out += "App intents (ask an app to do something; Basecamp asks the user and shows the app; "
+               "? = optional):\n" + intentLines;
     out += "\nUser: \"" + text + "\"";
     return out;
 }
@@ -1128,7 +1151,11 @@ std::vector<AppIntent> Tools::intentsOf(const std::map<std::string, Package>& pa
 std::vector<AppIntent> Tools::intents() {
     std::map<std::string, Package> packages;
     std::string error;
-    if (!loadPackages(&packages, &error)) return {};
+    packagesUnavailable = !loadPackages(&packages, &error);
+    if (packagesUnavailable) {
+        if (onIntentReport) onIntentReport({{"count", 0}, {"apps", Json::array()}, {"problem", "the package list is unavailable: " + error}});
+        return {};
+    }
     return intentsOf(packages);
 }
 

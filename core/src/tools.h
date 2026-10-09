@@ -72,6 +72,8 @@ public:
     // Each look for intents reports what it found and, if nothing, why:
     // {"count", "problem"?, "self", "selfDir", "uses", "apps": [{app, type, dir, metadata, provides, usable}]}.
     std::function<void(const Json&)> onIntentReport;
+    // The last intents() could not read the package list (Basecamp not ready yet).
+    bool packagesUnavailable = false;
     // "Now: Sunday 2026-10-04 14:05 (local time)": what "tomorrow at 3" is measured from.
     std::function<std::string()> nowText;
 
