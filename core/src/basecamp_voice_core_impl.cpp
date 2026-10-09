@@ -153,6 +153,17 @@ public:
 
     bool isReady() const { return assets != nullptr; }
 
+    // The last look for app intents (Tools::onIntentReport), for the window and
+    // in intents-report.json, so "why doesn't it see Scala's intents" has an answer.
+    Json intentReport = Json::object();
+    void noteIntents(const Json& r) {
+        std::lock_guard<std::mutex> lk(mu);
+        if (r == intentReport) return;
+        intentReport = r;
+        if (dir.empty()) return;
+        std::ofstream(dir + "/intents-report.json") << r.dump(2) << "\n";
+    }
+
     Json settingsShown() {
         std::lock_guard<std::mutex> lk(mu);
         Json s = settings;
@@ -236,6 +247,13 @@ public:
         {
             std::lock_guard<std::mutex> lk(mu);
             s["voice"] = {{"state", voiceState}, {"error", voiceError}, {"transcript", lastTranscript}};
+            if (intentReport.contains("count")) {
+                Json apps = Json::array();
+                for (const auto& a : intentReport["apps"])
+                    if (a.value("usable", 0) > 0) apps.push_back(a.value("app", ""));
+                s["intents"] = {{"count", intentReport["count"]}, {"apps", apps},
+                                {"problem", intentReport.value("problem", "")}};
+            }
         }
         s["setup"] = assets ? assets->status() : Json{{"state", "missing"}};
         s["model"] = {{"mode", mode()}, {"server", llama ? llama->state() : "stopped"},
@@ -366,6 +384,7 @@ BasecampVoiceCoreImpl::BasecampVoiceCoreImpl()
       m_voice(std::make_unique<Voice>()),
       m_engine(std::make_unique<Engine>(*m_bus, *m_voice)) {
     m_voice->engine = m_engine.get();
+    m_engine->tools().onIntentReport = [v = m_voice.get()](const Json& r) { v->noteIntents(r); };
 }
 
 BasecampVoiceCoreImpl::~BasecampVoiceCoreImpl() {
@@ -382,6 +401,9 @@ void BasecampVoiceCoreImpl::onContextReady() {
         dir = std::string(home ? home : "/tmp") + "/.local/share/basecamp-voice";
     }
     m_voice->ready(dir);
+    // One look for app intents now, so the window says what it found before
+    // the first request (later looks happen with every plan).
+    m_engine->post([this] { m_engine->tools().intents(); });
 }
 
 LogosShutdown BasecampVoiceCoreImpl::aboutToUnload() {

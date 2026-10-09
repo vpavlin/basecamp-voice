@@ -3,6 +3,10 @@ your computer plans it, you confirm, and it runs.
 
 **Requires:** Logos Basecamp v0.3.1.
 
+## New in 0.3.1
+
+- **Shows what it found:** the line under the input now says which apps' intents Basecamp Voice found, or why it found none. The details are in `intents-report.json` in its data folder.
+
 ## New in 0.3.0
 
 - **Ask apps directly.** Apps that provide Basecamp intents can be spoken to: "add dentist on Tuesday at 3" or

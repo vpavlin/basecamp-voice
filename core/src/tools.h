@@ -69,6 +69,9 @@ public:
     std::string selfApp = "basecamp_voice";
     // What the installed apps provide that this app may raise.
     std::vector<AppIntent> intents();
+    // Each look for intents reports what it found and, if nothing, why:
+    // {"count", "problem"?, "self", "selfDir", "uses", "apps": [{app, type, dir, metadata, provides, usable}]}.
+    std::function<void(const Json&)> onIntentReport;
     // "Now: Sunday 2026-10-04 14:05 (local time)": what "tomorrow at 3" is measured from.
     std::function<std::string()> nowText;
 
@@ -96,6 +99,7 @@ private:
         std::vector<std::string> dependencies;
         bool installed = false;
         std::string installDir;
+        Json raw;   // our own entry from getInstalledPackages, for the intents report
     };
 
     Prepared prepareInstall(const Json& args);

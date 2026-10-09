@@ -1,7 +1,7 @@
 {
     "name": "basecamp_voice",
     "display_name": "Basecamp Voice",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "Say what you want Basecamp to do: install packages, open apps, call modules",
     "author": "vpavlin",
     "type": "ui_qml",

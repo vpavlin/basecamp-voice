@@ -208,7 +208,7 @@ if __name__ == "__main__":
     catalog = catalog_from(json.load(open(sys.argv[2] if len(sys.argv) > 2 else "/tmp/bcv/index.json")))
     for core in ("capability_module", "package_manager", "package_downloader", "modules_state"):
         catalog.setdefault(core, {"type": "core", "description": "", "deps": []})
-    cases = json.load(open(here / "cases.json"))
+    cases = json.load(open(os.environ.get("CASES") or here / "cases.json"))
     only = os.environ.get("ONLY")   # a substring of the cases to run
     if only: cases = [c for c in cases if only in json.dumps(c, ensure_ascii=False)]
     passed = 0

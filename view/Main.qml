@@ -41,6 +41,7 @@ Item {
     property var model: ({ mode: "rules", server: "stopped" })
     property var settings: ({ endpoint: "", model: "", apiKey: "", localModel: "" })
     property var models: []
+    property var intents: ({})   // the core's last look for app intents: {count, apps, problem}
     property bool setupDismissed: false
     property bool showSettings: false
     property bool voiceBusy: false
@@ -145,6 +146,7 @@ Item {
         if (r.model) root.model = r.model
         if (r.settings) root.settings = r.settings
         if (r.models) root.models = r.models
+        if (r.intents) root.intents = r.intents
     }
 
     function haveAsset(id) {
@@ -840,6 +842,9 @@ Item {
                   + " - " + (root.model.mode === "local" ? "model on this computer (" + root.model.server + ")"
                              : root.model.mode === "remote" ? "model at " + (root.settings.endpoint || "?")
                              : "simple commands")
+                  + (root.intents.count === undefined ? ""
+                     : root.intents.count > 0 ? " - app intents: " + root.intents.count + " (" + root.intents.apps.join(", ") + ")"
+                     : " - no app intents: " + root.intents.problem)
                   + (root.pollMisses >= 3 ? " - can't reach basecamp_voice_core" : "")
         }
     }

@@ -79,9 +79,21 @@ LOGOS_TEST(intents_are_what_installed_apps_provide_and_we_declare) {
             LOGOS_ASSERT_EQ(a.params[3].type, std::string("number"));
         }
     }
-    // Uninstalled: nothing is offered.
+    // Every look reports what it saw.
+    Json report;
+    t.onIntentReport = [&report](const Json& r) { report = r; };
+    t.intents();
+    LOGOS_ASSERT_EQ(report["count"].get<int>(), 3);
+    LOGOS_ASSERT_FALSE(report.contains("problem"));
+    LOGOS_ASSERT_EQ(report["uses"].get<int>(), 4);
+    // Uninstalled: nothing is offered, and the report says why.
     f.bc.installed.erase("scala_ui");
     LOGOS_ASSERT_TRUE(t.intents().empty());
+    LOGOS_ASSERT_EQ(report["problem"].get<std::string>(), std::string("no installed app provides an intent listed in our uses"));
+    // No install folder for ourselves: no way to read our uses.
+    f.bc.installDirs.erase("basecamp_voice");
+    t.intents();
+    LOGOS_ASSERT_EQ(report["problem"].get<std::string>(), std::string("Basecamp gave no install folder for basecamp_voice"));
 }
 
 LOGOS_TEST(intent_step_is_checked_against_what_the_app_describes) {

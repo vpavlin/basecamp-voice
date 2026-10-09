@@ -235,6 +235,7 @@ bool Tools::loadPackages(std::map<std::string, Package>* out, std::string* error
             if (p.displayName.empty()) p.displayName = str(e, "displayName");
             p.version = str(e, "version");
             p.installDir = str(e, "installDir");
+            if (name == selfApp) p.raw = e;
             // The installed manifest is what Basecamp will load.
             if (e.contains("dependencies")) p.dependencies = depNames(e["dependencies"]);
         }
@@ -1062,19 +1063,40 @@ std::string describeObject(const Json& o) {
 
 std::vector<AppIntent> Tools::intentsOf(const std::map<std::string, Package>& packages) const {
     std::vector<AppIntent> out;
+    // What was looked at, and why nothing was found if so (onIntentReport).
+    Json report = {{"self", selfApp}, {"apps", Json::array()}};
+    auto finish = [&](const std::string& problem) {
+        report["count"] = out.size();
+        if (!problem.empty()) report["problem"] = problem;
+        if (onIntentReport) onIntentReport(report);
+        return out;
+    };
     // Basecamp refuses a request this app did not declare: only those count.
     std::set<std::string> uses;
     auto self = packages.find(selfApp);
-    if (self == packages.end()) return out;
+    if (self == packages.end() || !self->second.installed) return finish(selfApp + " is not in Basecamp's installed list");
+    report["selfDir"] = self->second.installDir;
+    report["selfInstalled"] = self->second.raw;
+    if (self->second.installDir.empty()) return finish("Basecamp gave no install folder for " + selfApp);
     const Json mine = readMetadata(self->second.installDir);
     if (mine.contains("uses") && mine["uses"].is_array())
         for (const auto& u : mine["uses"])
             if (u.is_object() && u.contains("intent") && u["intent"].is_string()) uses.insert(u["intent"].get<std::string>());
+    report["uses"] = uses.size();
+    if (uses.empty()) return finish("no intents in " + self->second.installDir + "/metadata.json \"uses\"");
 
     for (const auto& [name, p] : packages) {
-        if (!p.installed || p.type != "ui_qml" || name == selfApp) continue;
+        if (!p.installed || name == selfApp) continue;
+        Json row = {{"app", name}, {"type", p.type}, {"dir", p.installDir}};
+        if (p.type != "ui_qml") {
+            if (p.installDir.find("plugins") != std::string::npos) report["apps"].push_back(row);
+            continue;
+        }
         const Json meta = readMetadata(p.installDir);
-        if (!meta.contains("provides") || !meta["provides"].is_array()) continue;
+        row["metadata"] = !meta.empty();
+        row["provides"] = meta.contains("provides") && meta["provides"].is_array() ? meta["provides"].size() : 0;
+        const size_t before = out.size();
+        if (!meta.contains("provides") || !meta["provides"].is_array()) { report["apps"].push_back(row); continue; }
         for (const auto& e : meta["provides"]) {
             const std::string intent = str(e, "intent");
             if (intent.empty() || !uses.count(intent)) continue;
@@ -1097,8 +1119,10 @@ std::vector<AppIntent> Tools::intentsOf(const std::map<std::string, Package>& pa
                 }
             out.push_back(a);
         }
+        row["usable"] = out.size() - before;
+        report["apps"].push_back(row);
     }
-    return out;
+    return finish(out.empty() ? "no installed app provides an intent listed in our uses" : "");
 }
 
 std::vector<AppIntent> Tools::intents() {
