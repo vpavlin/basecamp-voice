@@ -6,7 +6,7 @@ your computer plans it, you confirm, and it runs.
 ## New in 0.3.0
 
 - **Ask apps directly.** Apps that provide Basecamp intents can be spoken to: "add dentist on Tuesday at 3" or
-  "what's on my calendar tomorrow" goes to [Scala](https://github.com/vpavlin/scala) (scala_ui 0.10.0 or newer).
+  "what's on my calendar tomorrow" goes to [Scala](https://github.com/vpavlin/scala) (scala_ui 0.11.0 or newer, with app intents: https://github.com/vpavlin/scala/releases/tag/scala_ui-v0.11.0-intents).
   Basecamp asks you to confirm each request.
 
 ## Packages

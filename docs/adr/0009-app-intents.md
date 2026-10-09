@@ -24,7 +24,7 @@ does" was app intents, and that it needed proposing upstream. That was wrong.
     provider's text.
 
 The first app to provide intents is Scala, the calendar (vpavlin/scala, its
-ADR 0022): list calendars, list/search events, add an event, create, join or
+ADR 0023): list calendars, list/search events, add an event, create, join or
 share a calendar, show a date.
 
 ## Decision
@@ -81,7 +81,7 @@ A new tool, `intent {intent, params}`.
 ## Consequences
 
 - Any app that adopts `provides` becomes speakable, once its intents are in our
-  `uses`. Scala's ADR 0022 is the worked example.
+  `uses`. Scala's ADR 0023 is the worked example.
 - Two confirmations for writes: our **Do it**, then Basecamp's dialog. A read
   shows only Basecamp's, and the provider comes forward briefly.
 - **Upstream ask, replacing the old one.** An assistant cannot know every
